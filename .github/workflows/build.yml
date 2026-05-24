@@ -18,19 +18,24 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # Skip Gradle cache entirely to avoid GitHub cache service issues
-      # Cache is causing build failures due to intermittent outages
-
       - name: Grant execute permission to gradlew
         run: chmod +x ./gradlew
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug 2>&1 | tee build.log
+
+      - name: Show build errors if failed
+        if: failure()
+        run: |
+          echo "=== BUILD LOG (last 100 lines) ==="
+          tail -100 build.log || true
 
       - name: List APK files
+        if: success()
         run: find . -name '*.apk' -type f
 
       - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
