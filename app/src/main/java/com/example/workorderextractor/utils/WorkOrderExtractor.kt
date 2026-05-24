@@ -65,7 +65,7 @@ object WorkOrderExtractor {
 
     private fun extractMultiLineAddress(fullText: String, startKeyword: String, endKeyword: String): String {
         // 嘗試匹配標題 + 內容（跨多行）
-        val multiLinePattern = Regex("$startKeyword\\s*(.+?)(?=\\s*$endKeyword|\\s+\\n|\\n\\s*$|\\s*$)", RegexOption.IGNORE_CASE or RegexOption.DOT_MATCHES_ALL)
+        val multiLinePattern = Regex("$startKeyword\\s*(.+?)(?=\\s*$endKeyword|\\s+\\n|\\n\\s*$|\\s*$)", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
         val match = multiLinePattern.find(fullText)
         if (match != null) {
             return match.groupValues[1].trim().replace(Regex("\\s+"), " ")
