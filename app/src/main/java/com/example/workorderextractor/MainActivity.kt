@@ -21,7 +21,6 @@ import com.example.workorderextractor.ui.theme.WorkOrderExtractorTheme
 import com.example.workorderextractor.utils.WorkOrderExtractor
 import com.example.workorderextractor.viewmodel.WorkOrderViewModel
 import com.example.workorderextractor.viewmodel.WorkOrderViewModelFactory
-import kotlinx.coroutines.flow.firstOrNull
 
 class MainActivity : ComponentActivity() {
     private lateinit var db: AppDatabase
@@ -68,13 +67,13 @@ fun AddWorkOrderScreen(viewModel: WorkOrderViewModel, onNavigateToList: () -> Un
     var showPreview by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text("輸入文章（如工單內容）", style = MaterialTheme.typography.titleLarge)
+        Text("Enter work order text", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = rawText,
             onValueChange = { rawText = it },
             modifier = Modifier.fillMaxWidth().height(200.dp),
-            placeholder = { Text("請貼上或輸入包含工單資料的文章...") }
+            placeholder = { Text("Paste or type the work order content here...") }
         )
         Spacer(modifier = Modifier.height(8.dp))
         Button(onClick = {
@@ -83,22 +82,22 @@ fun AddWorkOrderScreen(viewModel: WorkOrderViewModel, onNavigateToList: () -> Un
                 showPreview = true
             }
         }) {
-            Text("提取資料")
+            Text("Extract Data")
         }
         Spacer(modifier = Modifier.height(8.dp))
         if (showPreview && extractedOrder != null) {
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("提取結果預覽", style = MaterialTheme.typography.titleMedium)
-                    HorizontalDivider()
+                    Text("Extraction Preview", style = MaterialTheme.typography.titleMedium)
+                    Divider()
                     Text("Job ID: ${extractedOrder!!.jobId}")
                     Text("Service No: ${extractedOrder!!.serviceNumber}")
-                    Text("A端地址: ${extractedOrder!!.addressA}")
-                    Text("B端地址: ${extractedOrder!!.addressB}")
-                    Text("日期: ${extractedOrder!!.appointmentDate}")
-                    Text("時間: ${extractedOrder!!.appointmentTime}")
-                    Text("聯絡人: ${extractedOrder!!.contactName}")
-                    Text("電話: ${extractedOrder!!.contactPhone}")
+                    Text("A-End Address: ${extractedOrder!!.addressA}")
+                    Text("B-End Address: ${extractedOrder!!.addressB}")
+                    Text("Date: ${extractedOrder!!.appointmentDate}")
+                    Text("Time: ${extractedOrder!!.appointmentTime}")
+                    Text("Contact: ${extractedOrder!!.contactName}")
+                    Text("Phone: ${extractedOrder!!.contactPhone}")
                     Text("Status: ${extractedOrder!!.status}")
                     Text("PID Desc: ${extractedOrder!!.pidDesc}")
                     Spacer(modifier = Modifier.height(8.dp))
@@ -107,11 +106,11 @@ fun AddWorkOrderScreen(viewModel: WorkOrderViewModel, onNavigateToList: () -> Un
                             viewModel.insertOrder(extractedOrder!!)
                             onNavigateToList()
                         }) {
-                            Text("儲存")
+                            Text("Save")
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         OutlinedButton(onClick = { showPreview = false }) {
-                            Text("取消")
+                            Text("Cancel")
                         }
                     }
                 }
@@ -119,7 +118,7 @@ fun AddWorkOrderScreen(viewModel: WorkOrderViewModel, onNavigateToList: () -> Un
         }
         Spacer(modifier = Modifier.height(8.dp))
         Button(onClick = onNavigateToList) {
-            Text("查看所有已儲存工單")
+            Text("View All Saved Orders")
         }
     }
 }
@@ -134,7 +133,7 @@ fun WorkOrderListScreen(viewModel: WorkOrderViewModel, onEdit: (Int) -> Unit, on
             IconButton(onClick = onBack) {
                 Text("←")
             }
-            Text("已儲存的工單", style = MaterialTheme.typography.titleLarge)
+            Text("Saved Work Orders", style = MaterialTheme.typography.titleLarge)
         }
         OutlinedTextField(
             value = searchText,
@@ -142,7 +141,7 @@ fun WorkOrderListScreen(viewModel: WorkOrderViewModel, onEdit: (Int) -> Unit, on
                 searchText = it
                 viewModel.updateSearchQuery(it)
             },
-            label = { Text("搜尋") },
+            label = { Text("Search") },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(8.dp))
@@ -152,9 +151,9 @@ fun WorkOrderListScreen(viewModel: WorkOrderViewModel, onEdit: (Int) -> Unit, on
                     onClick = { onEdit(order.id) }) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Text("Job ID: ${order.jobId}", style = MaterialTheme.typography.titleMedium)
-                        Text("日期: ${order.appointmentDate} ${order.appointmentTime}")
-                        Text("聯絡人: ${order.contactName} (${order.contactPhone})")
-                        Text("地址: ${order.addressA.take(20)}...")
+                        Text("Date: ${order.appointmentDate} ${order.appointmentTime}")
+                        Text("Contact: ${order.contactName} (${order.contactPhone})")
+                        Text("Address: ${order.addressA.take(20)}...")
                     }
                 }
             }
@@ -188,44 +187,37 @@ fun EditWorkOrderScreen(viewModel: WorkOrderViewModel, orderId: Int, onBack: () 
     var pidDesc by remember { mutableStateOf(order!!.pidDesc) }
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text("編輯工單", style = MaterialTheme.typography.titleLarge)
+        Text("Edit Work Order", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(value = jobId, onValueChange = { jobId = it }, label = { Text("Job ID") })
         OutlinedTextField(value = serviceNumber, onValueChange = { serviceNumber = it }, label = { Text("Service Number") })
-        OutlinedTextField(value = addressA, onValueChange = { addressA = it }, label = { Text("A端地址") })
-        OutlinedTextField(value = addressB, onValueChange = { addressB = it }, label = { Text("B端地址") })
-        OutlinedTextField(value = appointmentDate, onValueChange = { appointmentDate = it }, label = { Text("日期") })
-        OutlinedTextField(value = appointmentTime, onValueChange = { appointmentTime = it }, label = { Text("時間") })
-        OutlinedTextField(value = contactName, onValueChange = { contactName = it }, label = { Text("聯絡人") })
-        OutlinedTextField(value = contactPhone, onValueChange = { contactPhone = it }, label = { Text("電話") })
+        OutlinedTextField(value = addressA, onValueChange = { addressA = it }, label = { Text("A-End Address") })
+        OutlinedTextField(value = addressB, onValueChange = { addressB = it }, label = { Text("B-End Address") })
+        OutlinedTextField(value = appointmentDate, onValueChange = { appointmentDate = it }, label = { Text("Date") })
+        OutlinedTextField(value = appointmentTime, onValueChange = { appointmentTime = it }, label = { Text("Time") })
+        OutlinedTextField(value = contactName, onValueChange = { contactName = it }, label = { Text("Contact Name") })
+        OutlinedTextField(value = contactPhone, onValueChange = { contactPhone = it }, label = { Text("Phone") })
         OutlinedTextField(value = status, onValueChange = { status = it }, label = { Text("Status") })
         OutlinedTextField(value = pidDesc, onValueChange = { pidDesc = it }, label = { Text("PID Desc") })
         Spacer(modifier = Modifier.height(8.dp))
         Row {
             Button(onClick = {
                 val updated = order!!.copy(
-                    jobId = jobId,
-                    serviceNumber = serviceNumber,
-                    addressA = addressA,
-                    addressB = addressB,
-                    appointmentDate = appointmentDate,
-                    appointmentTime = appointmentTime,
-                    contactName = contactName,
-                    contactPhone = contactPhone,
-                    status = status,
-                    pidDesc = pidDesc
+                    jobId = jobId, serviceNumber = serviceNumber, addressA = addressA, addressB = addressB,
+                    appointmentDate = appointmentDate, appointmentTime = appointmentTime,
+                    contactName = contactName, contactPhone = contactPhone, status = status, pidDesc = pidDesc
                 )
                 viewModel.updateOrder(updated)
                 onBack()
             }) {
-                Text("儲存修改")
+                Text("Save Changes")
             }
             Spacer(modifier = Modifier.width(8.dp))
             OutlinedButton(onClick = {
                 viewModel.deleteOrder(order!!)
                 onBack()
             }) {
-                Text("刪除")
+                Text("Delete")
             }
         }
     }
