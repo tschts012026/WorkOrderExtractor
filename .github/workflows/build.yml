@@ -24,6 +24,13 @@ jobs:
       - name: Build Debug APK
         run: ./gradlew assembleDebug 2>&1 | tee build.log
 
+      - name: Verify APK exists
+        run: |
+          echo "=== Checking APK files ==="
+          find . -name '*.apk' -type f -ls
+          ls -la app/build/outputs/apk/debug/ || echo "Debug dir not found"
+          cat app/build/outputs/apk/debug/output-metadata.json 2>/dev/null || echo "No metadata"
+
       - name: Show build errors if failed
         if: failure()
         run: |
