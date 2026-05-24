@@ -84,11 +84,11 @@ object WorkOrderExtractor {
             serviceNumber = regex.find(rawText)?.groupValues?.get(1) ?: ""
         }
         if (addressA.isEmpty()) {
-            val regex = Regex("A End Address\\s*\\n\\s*(.+?)(?=\\n\\s*B End Address|\\n\\s*\\n|$)", RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
+            val regex = Regex("A End Address\\s*\\n\\s*(.+?)(?=\\n\\s*B End Address|\\n\\s*\\n|$)", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
             addressA = regex.find(rawText)?.groupValues?.get(1)?.trim() ?: ""
         }
         if (addressB.isEmpty()) {
-            val regex = Regex("B End Address\\s*\\n\\s*(.+?)(?=\\n\\s*\\n|\\n\\s*2N|$)", RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
+            val regex = Regex("B End Address\\s*\\n\\s*(.+?)(?=\\n\\s*\\n|\\n\\s*2N|$)", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
             addressB = regex.find(rawText)?.groupValues?.get(1)?.trim() ?: ""
         }
         if (appointmentDate.isEmpty()) {
@@ -112,7 +112,7 @@ object WorkOrderExtractor {
             status = regex.find(rawText)?.groupValues?.get(1) ?: ""
         }
         if (pidDesc.isEmpty()) {
-            val regex = Regex("PID Desc\\s*\\n\\s*(.+?)(?=\\n\\s*STB|\\n\\s*\\n|$)", RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
+            val regex = Regex("PID Desc\\s*\\n\\s*(.+?)(?=\\n\\s*STB|\\n\\s*\\n|$)", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
             pidDesc = regex.find(rawText)?.groupValues?.get(1)?.trim() ?: ""
         }
 
