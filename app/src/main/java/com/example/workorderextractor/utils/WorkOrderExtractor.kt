@@ -4,7 +4,6 @@ import com.example.workorderextractor.data.WorkOrder
 
 object WorkOrderExtractor {
     fun extract(rawText: String): WorkOrder {
-        // 預設空值
         var jobId = ""
         var grid = ""
         var serviceNumber = ""
@@ -17,103 +16,71 @@ object WorkOrderExtractor {
         var status = ""
         var pidDesc = ""
 
-        // 將文章分成多行，並去除首尾空格
         val lines = rawText.lines().map { it.trim() }
 
-        for (i in lines.indices) {
-            val line = lines[i]
+        // === 第一優先：冒號格式（用戶最常用）===
+        // 例如：日期: 2026/05/21  或  時間: 10:00 - 10:00 (EX)
+        for (line in lines) {
             when {
-                // Job ID: 下一行就是數字
-                line.contains("Job ID", ignoreCase = true) && i + 1 < lines.size -> {
-                    jobId = lines[i + 1].trim()
-                }
-                // Exchange / Grid
-                line.contains("Exchange / Grid", ignoreCase = true) && i + 1 < lines.size -> {
-                    grid = lines[i + 1].trim()
-                }
-                // Service Number (可能出現在多處，但優先抓取 General Information 下的)
-                line.contains("Service Number", ignoreCase = true) && i + 1 < lines.size -> {
-                    serviceNumber = lines[i + 1].trim()
-                }
-                // A End Address
-                line.contains("A End Address", ignoreCase = true) && i + 1 < lines.size -> {
-                    addressA = lines[i + 1].trim()
-                }
-                // B End Address
-                line.contains("B End Address", ignoreCase = true) && i + 1 < lines.size -> {
-                    addressB = lines[i + 1].trim()
-                }
-                // Appointment Date
-                line.contains("Appointment Date", ignoreCase = true) && i + 1 < lines.size -> {
-                    appointmentDate = lines[i + 1].trim()
-                }
-                // Appointment Time
-                line.contains("Appointment Time", ignoreCase = true) && i + 1 < lines.size -> {
-                    appointmentTime = lines[i + 1].trim()
-                }
-                // Contact Name (在 "Contact" 區塊內)
-                line.contains("Contact Name", ignoreCase = true) && i + 1 < lines.size -> {
-                    contactName = lines[i + 1].trim()
-                }
-                // Contact No.
-                line.contains("Contact No.", ignoreCase = true) && i + 1 < lines.size -> {
-                    contactPhone = lines[i + 1].trim()
-                }
-                // Status (在 General Information 中)
-                line.contains("Status", ignoreCase = true) && i + 1 < lines.size -> {
-                    status = lines[i + 1].trim()
-                }
-                // PID Desc (有時在下一行)
-                line.contains("PID Desc", ignoreCase = true) && i + 1 < lines.size -> {
-                    pidDesc = lines[i + 1].trim()
-                }
+                // 冒號格式：標題在冒號前，數值在冒號後
+                Regex("^日期\\s*[:：]\\s*(.+)").find(line) != null ->
+                    appointmentDate = line.substringAfter(":").substringAfter("：").trim()
+                Regex("^時間\\s*[:：]\\s*(.+)").find(line) != null ->
+                    appointmentTime = line.substringAfter(":").substringAfter("：").trim()
+                Regex("^聯絡人\\s*[:：]\\s*(.+)").find(line) != null ->
+                    contactName = line.substringAfter(":").substringAfter("：").trim()
+                Regex("^電話\\s*[:：]\\s*(.+)").find(line) != null ->
+                    contactPhone = line.substringAfter(":").substringAfter("：").trim()
+                Regex("^Status\\s*[:：]\\s*(.+)", setOf(RegexOption.IGNORE_CASE)).find(line) != null ->
+                    status = line.substringAfter(":").substringAfter("：").trim()
+                Regex("^PID Desc\\s*[:：](.*)", setOf(RegexOption.IGNORE_CASE)).find(line) != null ->
+                    pidDesc = line.substringAfter(":").substringAfter("：").trim()
+                // A/B 端地址（冒號格式）
+                Regex("^A端地址\\s*[:：](.*)", setOf(RegexOption.IGNORE_CASE)).find(line) != null ->
+                    addressA = line.substringAfter(":").substringAfter("：").trim()
+                Regex("^B端地址\\s*[:：](.*)", setOf(RegexOption.IGNORE_CASE)).find(line) != null ->
+                    addressB = line.substringAfter(":").substringAfter("：").trim()
+                // Job ID
+                Regex("^Job ID\\s*[:：]?\\s*(\\d+)", setOf(RegexOption.IGNORE_CASE)).find(line) != null ->
+                    jobId = Regex("\\d+").find(line)?.value ?: ""
+                // Service Number
+                Regex("^Service No\\.?\\s*[:：]?\\s*(\\d+)", setOf(RegexOption.IGNORE_CASE)).find(line) != null ->
+                    serviceNumber = Regex("\\d+").find(line)?.value ?: ""
+                // Grid
+                Regex("^Grid\\s*[:：]?\\s*(.+)", setOf(RegexOption.IGNORE_CASE)).find(line) != null ->
+                    grid = line.substringAfter(":").substringAfter("：").trim().ifEmpty { line.substringAfter(" ").trim() }
             }
         }
 
-        // 如果還是沒抓到，嘗試用正則表達式直接從全文提取
+        // === 第二優先：標題 + 下一行格式（完整文章）===
         if (jobId.isEmpty()) {
-            val regex = Regex("Job ID\\s*\\n\\s*(\\d+)", RegexOption.IGNORE_CASE)
-            jobId = regex.find(rawText)?.groupValues?.get(1) ?: ""
-        }
-        if (grid.isEmpty()) {
-            val regex = Regex("Exchange / Grid\\s*\\n\\s*(.+?)(?=\\n)", RegexOption.IGNORE_CASE)
-            grid = regex.find(rawText)?.groupValues?.get(1)?.trim() ?: ""
-        }
-        if (serviceNumber.isEmpty()) {
-            val regex = Regex("Service Number\\s*\\n\\s*(\\d+)", RegexOption.IGNORE_CASE)
-            serviceNumber = regex.find(rawText)?.groupValues?.get(1) ?: ""
-        }
-        if (addressA.isEmpty()) {
-            val regex = Regex("A End Address\\s*\\n\\s*(.+?)(?=\\n\\s*B End Address|\\n\\s*\\n|$)", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
-            addressA = regex.find(rawText)?.groupValues?.get(1)?.trim() ?: ""
-        }
-        if (addressB.isEmpty()) {
-            val regex = Regex("B End Address\\s*\\n\\s*(.+?)(?=\\n\\s*\\n|\\n\\s*2N|$)", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
-            addressB = regex.find(rawText)?.groupValues?.get(1)?.trim() ?: ""
-        }
-        if (appointmentDate.isEmpty()) {
-            val regex = Regex("Appointment Date\\s*\\n\\s*(\\d{4}/\\d{2}/\\d{2})", RegexOption.IGNORE_CASE)
-            appointmentDate = regex.find(rawText)?.groupValues?.get(1) ?: ""
-        }
-        if (appointmentTime.isEmpty()) {
-            val regex = Regex("Appointment Time\\s*\\n\\s*(.+?)(?=\\n)", RegexOption.IGNORE_CASE)
-            appointmentTime = regex.find(rawText)?.groupValues?.get(1)?.trim() ?: ""
-        }
-        if (contactName.isEmpty()) {
-            val regex = Regex("Contact Name\\s*\\n\\s*(.+?)(?=\\n)", RegexOption.IGNORE_CASE)
-            contactName = regex.find(rawText)?.groupValues?.get(1)?.trim() ?: ""
-        }
-        if (contactPhone.isEmpty()) {
-            val regex = Regex("Contact No\\.\\s*\\n\\s*(\\d+)", RegexOption.IGNORE_CASE)
-            contactPhone = regex.find(rawText)?.groupValues?.get(1) ?: ""
-        }
-        if (status.isEmpty()) {
-            val regex = Regex("Status\\s*\\n\\s*(\\w+)", RegexOption.IGNORE_CASE)
-            status = regex.find(rawText)?.groupValues?.get(1) ?: ""
-        }
-        if (pidDesc.isEmpty()) {
-            val regex = Regex("PID Desc\\s*\\n\\s*(.+?)(?=\\n\\s*STB|\\n\\s*\\n|$)", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
-            pidDesc = regex.find(rawText)?.groupValues?.get(1)?.trim() ?: ""
+            for (i in lines.indices) {
+                val line = lines[i]
+                when {
+                    line.contains("Job ID", ignoreCase = true) && i + 1 < lines.size && jobId.isEmpty() ->
+                        if (lines[i + 1].matches(Regex("\\d+"))) jobId = lines[i + 1].trim()
+                    line.contains("Exchange / Grid", ignoreCase = true) && i + 1 < lines.size && grid.isEmpty() ->
+                        grid = lines[i + 1].trim()
+                    line.contains("Service Number", ignoreCase = true) && i + 1 < lines.size && serviceNumber.isEmpty() ->
+                        serviceNumber = lines[i + 1].trim()
+                    line.contains("A End Address", ignoreCase = true) && i + 1 < lines.size && addressA.isEmpty() ->
+                        addressA = lines[i + 1].trim()
+                    line.contains("B End Address", ignoreCase = true) && i + 1 < lines.size && addressB.isEmpty() ->
+                        addressB = lines[i + 1].trim()
+                    line.contains("Appointment Date", ignoreCase = true) && i + 1 < lines.size && appointmentDate.isEmpty() ->
+                        appointmentDate = lines[i + 1].trim()
+                    line.contains("Appointment Time", ignoreCase = true) && i + 1 < lines.size && appointmentTime.isEmpty() ->
+                        appointmentTime = lines[i + 1].trim()
+                    line.contains("Contact Name", ignoreCase = true) && i + 1 < lines.size && contactName.isEmpty() ->
+                        contactName = lines[i + 1].trim()
+                    line.contains("Contact No.", ignoreCase = true) && i + 1 < lines.size && contactPhone.isEmpty() ->
+                        contactPhone = lines[i + 1].trim()
+                    line.equals("Status", ignoreCase = true) && i + 1 < lines.size && status.isEmpty() ->
+                        status = lines[i + 1].trim()
+                    line.contains("PID Desc", ignoreCase = true) && i + 1 < lines.size && pidDesc.isEmpty() ->
+                        pidDesc = lines[i + 1].trim()
+                }
+            }
         }
 
         return WorkOrder(
