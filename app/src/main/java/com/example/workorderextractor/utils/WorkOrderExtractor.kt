@@ -10,24 +10,23 @@ object WorkOrderExtractor {
             for (i in lines.indices) {
                 val line = lines[i].trim()
                 for (kw in keywords) {
+                    // Case 1: exact match keyword line, take next line
                     if (line.equals(kw, ignoreCase = true)) {
                         if (i + 1 < lines.size) return lines[i + 1].trim()
                     }
-                    if (line.contains(kw, ignoreCase = true) && line.contains(":")) {
-                        val parts = line.split(":", limit = 2)
-                        if (parts.size == 2) return parts[1].trim()
-                    }
-                    val hasSlashColon = line.contains(":/") || line.contains("\uff1a")
-                    if (line.contains(kw, ignoreCase = true) && hasSlashColon) {
-                        val parts = line.split(Regex("[:/\uff1a]"), limit = 2)
-                        if (parts.size >= 2) return parts[1].trim()
+                    // Case 2: colon format "Keyword: value"
+                    if (line.contains(kw, ignoreCase = true)) {
+                        val colonIdx = line.indexOf(":")
+                        if (colonIdx >= 0 && colonIdx < line.length - 1) {
+                            return line.substring(colonIdx + 1).trim()
+                        }
                     }
                 }
             }
             return ""
         }
 
-        val jobId = findValue("Job ID", "JobID", "Job No", "Job#")
+        val jobId = findValue("Job ID", "JobID", "Job No")
         val grid = findValue("Grid", "Exchange / Grid", "Exchange")
         val serviceNumber = findValue("Service Number", "Service#", "Service No")
         val address = findValue("Address", "A End Address", "Site Address", "Location")
@@ -40,10 +39,10 @@ object WorkOrderExtractor {
         var contactName = contactRaw
         var contactPhone = ""
         if (contactRaw.isNotEmpty()) {
-            val phoneMatch = Regex("(\\d{8})$").find(contactRaw)
+            val phoneMatch = Regex("\\d{8}$").find(contactRaw)
             if (phoneMatch != null) {
                 contactPhone = phoneMatch.value
-                contactName = contactRaw.removeSuffix(phoneMatch).trim().removeSuffix("/").removeSuffix("-").trim()
+                contactName = contactRaw.removeSuffix(phoneMatch).trim().removeSuffix("/").trim()
             }
         }
 
