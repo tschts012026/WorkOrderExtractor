@@ -73,9 +73,12 @@ fun InputScreen(viewModel: WorkOrderViewModel, onNavigateToList: () -> Unit) {
             Button(onClick = {
                 if (rawText.isNotBlank()) {
                     val extracted = WorkOrderExtractor.extract(rawText)
-                    if (extracted.jobId.isNotBlank()) {
+                    val hasData = listOf(extracted.jobId, extracted.grid, extracted.serviceNumber, 
+                        extracted.addressA, extracted.status, extracted.pidDesc).any { it.isNotBlank() }
+                    if (hasData) {
                         viewModel.insertOrder(extracted)
-                        saveMessage = "Saved successfully! (Job ID: ${extracted.jobId})"
+                        val displayId = if (extracted.jobId.isNotBlank()) "(Job ID: ${extracted.jobId})" else "(No Job ID)"
+                        saveMessage = "Saved successfully! $displayId"
                         rawText = ""
                     } else {
                         saveMessage = "Failed to extract data. Check format."
