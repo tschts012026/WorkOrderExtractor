@@ -208,14 +208,14 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📋 工單資料提取器</h1>
-            <p>自動提取姓名、電話、地址</p>
+            <h1>📋 WFM 工單提取器</h1>
+            <p>貼入工單 → 自動提取所有欄位</p>
         </div>
         
         <div class="content">
             <div class="input-section">
                 <label for="inputText">📝 貼入工單內容：</label>
-                <textarea id="inputText" placeholder="請貼入工單 raw text...&#10;&#10;例如：&#10;姓名：張三&#10;電話：61234567&#10;地址：香港九龍旺角..."></textarea>
+                <textarea id="inputText" placeholder="貼入工單 raw text...&#10;&#10;例如：&#10;Job ID: 7766370&#10;Grid: FTH&#10;Service Number: 063497&#10;Address: FLAT 605, 6/F, SUNBEAM PLAZA...&#10;Contact: Ms Kwok 27450670"></textarea>
             </div>
             
             <div class="button-group">
@@ -245,13 +245,63 @@
                 return;
             }
             
-            const result = {
-                name: extractName(input),
-                phone: extractPhone(input),
-                address: extractAddress(input)
-            };
+            // Auto-detect format: English key:value or Chinese
+            const isEnglish = /^(Job ID|Grid|Service|Address|Appointment|Time|Contact|Status|PID)/m.test(input);
             
-            displayResult(result);
+            if (isEnglish) {
+                const result = extractEnglish(input);
+                displayResult(result);
+            } else {
+                const result = {
+                    jobId: null, grid: null, serviceNumber: null,
+                    address: extractAddress(input),
+                    appointmentDate: null, time: null,
+                    contact: extractName(input), phone: extractPhone(input),
+                    status: null, pidDesc: null
+                };
+                displayResult(result);
+            }
+        }
+        
+        // English WFM format: Key: Value per line
+        function extractEnglish(text) {
+            const fields = {};
+            const lines = text.split('\n');
+            for (const line of lines) {
+                const m = line.match(/^\s*([A-Za-z][A-Za-z ]+?)\s*[:]\s*(.*)/);
+                if (m) {
+                    const key = m[1].trim().toLowerCase();
+                    const val = m[2].trim();
+                    if (val) fields[key] = val;
+                }
+            }
+            
+            // Split Contact into name + phone
+            let contactName = null;
+            let contactPhone = null;
+            const contactRaw = fields['contact'] || null;
+            if (contactRaw) {
+                const pm = contactRaw.match(/^(.*?)\s+(\d{8})$/);
+                if (pm) {
+                    contactName = pm[1].trim();
+                    contactPhone = pm[2];
+                } else {
+                    contactName = contactRaw;
+                }
+            }
+            
+            return {
+                jobId: fields['job id'] || null,
+                grid: fields['grid'] || null,
+                serviceNumber: fields['service number'] || null,
+                address: fields['address'] || null,
+                appointmentDate: fields['appointment date'] || null,
+                time: fields['time'] || null,
+                contact: contactName,
+                phone: contactPhone,
+                status: fields['status'] || null,
+                pidDesc: fields['pid desc'] || fields['pid'] || null
+            };
         }
         
         // 提取姓名
@@ -321,20 +371,25 @@
         function displayResult(result) {
             const resultContent = document.getElementById('resultContent');
             
-            resultContent.innerHTML = `
+            const fields = [
+                ['🔢 Job ID', 'jobId'],
+                ['📍 Grid', 'grid'],
+                ['🔧 Service #', 'serviceNumber'],
+                ['🏠 Address', 'address'],
+                ['📅 Date', 'appointmentDate'],
+                ['⏰ Time', 'time'],
+                ['👤 Contact', 'contact'],
+                ['📞 Phone', 'phone'],
+                ['📌 Status', 'status'],
+                ['📝 PID Desc', 'pidDesc']
+            ];
+            
+            resultContent.innerHTML = fields.map(([label, key]) => `
                 <div class="field">
-                    <div class="field-label">👤 姓名</div>
-                    <div class="field-value ${!result.name ? 'empty' : ''}">${result.name || '（未找到）'}</div>
+                    <div class="field-label">${label}</div>
+                    <div class="field-value ${!result[key] ? 'empty' : ''}">${result[key] || '（未找到）'}</div>
                 </div>
-                <div class="field">
-                    <div class="field-label">📞 電話</div>
-                    <div class="field-value ${!result.phone ? 'empty' : ''}">${result.phone || '（未找到）'}</div>
-                </div>
-                <div class="field">
-                    <div class="field-label">📍 地址</div>
-                    <div class="field-value ${!result.address ? 'empty' : ''}">${result.address || '（未找到）'}</div>
-                </div>
-            `;
+            `).join('');
             
             document.getElementById('resultSection').classList.add('show');
             showToast('✅ 提取完成！');
