@@ -3,306 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WFM 工單提取器 v2</title>
+    <title>WFM 工單提取器 v3</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+            min-height: 100vh; padding: 20px;
         }
-        
         .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
+            max-width: 800px; margin: 0 auto; background: white;
+            border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden;
         }
-        
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
+            color: white; padding: 30px; text-align: center;
         }
-        
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-        
-        .header p {
-            opacity: 0.9;
-            font-size: 14px;
-        }
-        
-        .content {
-            padding: 30px;
-        }
-        
-        .input-section {
-            margin-bottom: 30px;
-        }
-        
-        .input-section label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: #333;
-        }
-        
+        .header h1 { font-size: 28px; margin-bottom: 10px; }
+        .header p { opacity: 0.9; font-size: 14px; }
+        .content { padding: 30px; }
+        .input-section { margin-bottom: 20px; }
+        .input-section label { display: block; margin-bottom: 10px; font-weight: 600; color: #333; }
         textarea {
-            width: 100%;
-            min-height: 200px;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            font-family: inherit;
-            resize: vertical;
-            transition: border-color 0.3s;
+            width: 100%; min-height: 180px; padding: 15px;
+            border: 2px solid #e0e0e0; border-radius: 10px;
+            font-size: 16px; font-family: inherit; resize: vertical;
         }
-        
-        textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-        }
-        
+        textarea:focus { outline: none; border-color: #667eea; }
+        .button-group { display: flex; gap: 10px; margin-bottom: 20px; }
         button {
-            flex: 1;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            flex: 1; padding: 15px; border: none; border-radius: 10px;
+            font-size: 16px; font-weight: 600; cursor: pointer;
         }
-        
-        button:active {
-            transform: scale(0.98);
-        }
-        
+        button:active { transform: scale(0.98); }
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            color: white; box-shadow: 0 4px 15px rgba(102,126,234,0.4);
         }
-        
-        .btn-primary:hover {
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        .btn-secondary { background: #f5f5f5; color: #333; }
+        .btn-save {
+            background: #27ae60; color: white;
+            box-shadow: 0 4px 15px rgba(39,174,96,0.4);
         }
-        
-        .btn-secondary {
-            background: #f5f5f5;
-            color: #333;
+        .tab-bar {
+            display: flex; margin-bottom: 20px; background: #f5f5f5;
+            border-radius: 10px; padding: 4px;
         }
-        
-        .btn-secondary:hover {
-            background: #e0e0e0;
+        .tab-bar button {
+            flex: 1; padding: 12px; border: none; border-radius: 8px;
+            font-size: 15px; font-weight: 600; cursor: pointer;
+            background: transparent; color: #666; transition: all 0.3s;
         }
-        
-        .result-section {
-            display: none;
+        .tab-bar button.active {
+            background: white; color: #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        
-        .result-section.show {
-            display: block;
-            animation: fadeIn 0.5s;
-        }
-        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .result-section { display: none; }
+        .result-section.show { display: block; animation: fadeIn 0.5s; }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
         .result-card {
-            background: #f9f9f9;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
+            background: #f9f9f9; border-radius: 10px; padding: 20px; margin-bottom: 20px;
         }
-        
-        .result-card h3 {
-            color: #667eea;
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
-        
+        .result-card h3 { color: #667eea; margin-bottom: 15px; font-size: 18px; }
         .field {
-            margin-bottom: 15px;
-            padding-bottom: 15px;
+            margin-bottom: 12px; padding-bottom: 12px;
             border-bottom: 1px solid #e0e0e0;
         }
-        
-        .field:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
+        .field:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .field-label { font-weight: 600; color: #666; font-size: 14px; margin-bottom: 4px; }
+        .field-value { color: #333; font-size: 16px; word-break: break-word; }
+        .field-value.empty { color: #999; font-style: italic; }
+        .action-row { display: flex; gap: 10px; margin-top: 10px; }
+        .action-btn {
+            padding: 8px 15px; border: none; border-radius: 5px;
+            font-size: 14px; cursor: pointer; font-weight: 600;
         }
-        
-        .field-label {
-            font-weight: 600;
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 5px;
+        .saved-item {
+            background: #f0f4ff; border-radius: 10px; padding: 15px;
+            margin-bottom: 10px; position: relative;
         }
-        
-        .field-value {
-            color: #333;
-            font-size: 16px;
-            word-break: break-word;
+        .saved-item .saved-title { font-weight: 600; color: #333; margin-bottom: 8px; }
+        .saved-item .saved-detail { font-size: 13px; color: #666; line-height: 1.8; }
+        .saved-item .delete-btn {
+            position: absolute; top: 10px; right: 10px;
+            background: #e74c3c; color: white; border: none;
+            border-radius: 50%; width: 28px; height: 28px;
+            font-size: 14px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
         }
-        
-        .field-value.empty {
-            color: #999;
-            font-style: italic;
-        }
-        
-        .copy-btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            font-size: 14px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        
+        .empty-msg { color: #999; text-align: center; padding: 30px; }
         .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
+            position: fixed; bottom: 30px; left: 50%;
             transform: translateX(-50%) translateY(100px);
-            background: #333;
-            color: white;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 14px;
-            opacity: 0;
-            transition: all 0.3s;
-            z-index: 1000;
+            background: #333; color: white; padding: 15px 30px;
+            border-radius: 10px; font-size: 14px; opacity: 0;
+            transition: all 0.3s; z-index: 1000;
         }
-        
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>📋 WFM 工單提取器</h1>
-            <p>貼入工單 → 自動提取所有欄位</p>
+            <p>貼入工單 → 提取 → 儲存</p>
         </div>
-        
         <div class="content">
-            <div class="input-section">
-                <label for="inputText">📝 貼入工單內容：</label>
-                <textarea id="inputText" placeholder="貼入工單 raw text...&#10;&#10;例如：&#10;Job ID: 7766370&#10;Grid: FTH&#10;Service Number: 063497&#10;Address: FLAT 605, 6/F, SUNBEAM PLAZA...&#10;Contact: Ms Kwok 27450670"></textarea>
+            <div class="tab-bar">
+                <button class="active" onclick="switchTab('extract', this)">📝 提取</button>
+                <button onclick="switchTab('saved', this)">💾 已儲存 <span id="savedCount">0</span></button>
             </div>
-            
-            <div class="button-group">
-                <button class="btn-primary" onclick="extractData()">🚀 提取資料</button>
-                <button class="btn-secondary" onclick="clearAll()">🗑️ 清除</button>
-            </div>
-            
-            <div class="result-section" id="resultSection">
-                <div class="result-card">
-                    <h3>✅ 提取結果</h3>
-                    <div id="resultContent"></div>
-                    <button class="copy-btn" onclick="copyResult()">📋 複製結果</button>
+
+            <div id="tab-extract" class="tab-content active">
+                <div class="input-section">
+                    <label>📝 貼入工單內容：</label>
+                    <textarea id="inputText" placeholder="貼入工單 raw text...&#10;&#10;例如：&#10;Job ID: 7766370&#10;Grid: FTH&#10;Service Number: 063497&#10;Address: FLAT 605, 6/F, SUNBEAM PLAZA...&#10;Contact: Ms Kwok 27450670"></textarea>
                 </div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="extractData()">🚀 提取資料</button>
+                    <button class="btn-secondary" onclick="clearAll()">🗑️ 清除</button>
+                </div>
+                <div class="result-section" id="resultSection">
+                    <div class="result-card">
+                        <h3>✅ 提取結果</h3>
+                        <div id="resultContent"></div>
+                        <div class="action-row">
+                            <button class="action-btn" style="background:#667eea;color:white;" onclick="copyResult()">📋 複製</button>
+                            <button class="action-btn" style="background:#27ae60;color:white;flex:1;" onclick="saveResult()">💾 儲存</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-saved" class="tab-content">
+                <div id="savedList"></div>
             </div>
         </div>
     </div>
-    
     <div class="toast" id="toast"></div>
-    
+
     <script>
-        // 提取邏輯
+        let lastResult = null;
+
+        function switchTab(tab, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-bar button').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tab).classList.add('active');
+            btn.classList.add('active');
+            if (tab === 'saved') renderSavedList();
+        }
+
         function extractData() {
             const input = document.getElementById('inputText').value.trim();
-            
-            if (!input) {
-                showToast('⚠️ 請先貼入工單內容');
-                return;
-            }
-            
-            // Auto-detect format: English key:value or Chinese
+            if (!input) { showToast('⚠️ 請先貼入工單內容'); return; }
+
             const isEnglish = /^(Job ID|Grid|Service|Address|Appointment|Time|Contact|Status|PID)/m.test(input);
-            
+            let result;
             if (isEnglish) {
-                const result = extractEnglish(input);
-                displayResult(result);
+                result = extractEnglish(input);
             } else {
-                const result = {
+                result = {
                     jobId: null, grid: null, serviceNumber: null,
                     address: extractAddress(input),
                     appointmentDate: null, time: null,
                     contact: extractName(input), phone: extractPhone(input),
                     status: null, pidDesc: null
                 };
-                displayResult(result);
             }
+            lastResult = result;
+            displayResult(result);
         }
-        
-        // English WFM format: Key: Value per line
+
         function extractEnglish(text) {
             const fields = {};
-            const lines = text.split('\n');
-            for (const line of lines) {
+            text.split('\n').forEach(line => {
                 const m = line.match(/^\s*([A-Za-z][A-Za-z ]+?)\s*[:]\s*(.*)/);
-                if (m) {
-                    const key = m[1].trim().toLowerCase();
-                    const val = m[2].trim();
-                    if (val) fields[key] = val;
-                }
-            }
-            
-            // Split Contact into name + phone
-            let contactName = null;
-            let contactPhone = null;
+                if (m) { const k = m[1].trim().toLowerCase(); const v = m[2].trim(); if (v) fields[k] = v; }
+            });
+
+            let contactName = null, contactPhone = null;
             const contactRaw = fields['contact'] || null;
             if (contactRaw) {
-                // Try: "Ms Kwok 27450670" -> name + 8-digit phone
                 const pm = contactRaw.match(/^(.+?)\s+(\d{8})\s*$/);
-                if (pm) {
-                    contactName = pm[1].trim();
-                    contactPhone = pm[2];
-                } else {
-                    // Try extract phone from anywhere in contact
+                if (pm) { contactName = pm[1].trim(); contactPhone = pm[2]; }
+                else {
                     const pm2 = contactRaw.match(/(\d{8})/);
-                    if (pm2) {
-                        contactPhone = pm2[1];
-                        contactName = contactRaw.replace(pm2[1], '').replace(/\s+$/, '').trim();
-                    } else {
-                        contactName = contactRaw;
-                    }
+                    if (pm2) { contactPhone = pm2[1]; contactName = contactRaw.replace(pm2[1], '').trim(); }
+                    else { contactName = contactRaw; }
                 }
             }
-            // Fallback: search whole text for phone if not found in Contact
             if (!contactPhone) {
-                const phoneMatch = text.match(/(?:Tel|Phone|Contact)[:\s]*(\d{8})/i);
-                if (phoneMatch) contactPhone = phoneMatch[1];
+                const pm3 = text.match(/(?:Tel|Phone)[:\s]*(\d{8})/i);
+                if (pm3) contactPhone = pm3[1];
             }
-            
+
             return {
                 jobId: fields['job id'] || null,
                 grid: fields['grid'] || null,
@@ -316,127 +215,105 @@
                 pidDesc: fields['pid desc'] || fields['pid'] || null
             };
         }
-        
-        // 提取姓名
+
         function extractName(text) {
-            const patterns = [
-                /姓名[：:]\s*([^\n]{2,20})/i,
-                /名字[：:]\s*([^\n]{2,20})/i,
-                /稱呼[：:]\s*([^\n]{2,20})/i,
-                /客戶[：:]\s*([^\n]{2,20})/i,
-                /聯絡人[：:]\s*([^\n]{2,20})/i
-            ];
-            
-            for (const pattern of patterns) {
-                const match = text.match(pattern);
-                if (match && match[1]) {
-                    return match[1].trim();
-                }
-            }
-            
+            const ps = [/姓名[：:]\s*([^\n]{2,20})/i, /名字[：:]\s*([^\n]{2,20})/i, /聯絡人[：:]\s*([^\n]{2,20})/i];
+            for (const p of ps) { const m = text.match(p); if (m && m[1]) return m[1].trim(); }
             return null;
         }
-        
-        // 提取電話
+
         function extractPhone(text) {
-            const patterns = [
-                /電話[：:]\s*([0-9\-\s]{8,15})/i,
-                /手機[：:]\s*([0-9\-\s]{8,15})/i,
-                /聯絡電話[：:]\s*([0-9\-\s]{8,15})/i,
-                /電話號碼[：:]\s*([0-9\-\s]{8,15})/i,
-                /(\+852[-\s]?[0-9]{8})/,
-                /([0-9]{4}[-\s]?[0-9]{4})/,
-                /([0-9]{8})/
-            ];
-            
-            for (const pattern of patterns) {
-                const match = text.match(pattern);
-                if (match && match[1]) {
-                    return match[1].trim();
-                }
-            }
-            
+            const ps = [/電話[：:]\s*([0-9\-\s]{8,15})/i, /([0-9]{4}[-\s]?[0-9]{4})/, /([0-9]{8})/];
+            for (const p of ps) { const m = text.match(p); if (m && m[1]) return m[1].trim(); }
             return null;
         }
-        
-        // 提取地址
+
         function extractAddress(text) {
-            const patterns = [
-                /地址[：:]\s*([^\n]{5,100})/i,
-                /送貨地址[：:]\s*([^\n]{5,100})/i,
-                /安裝地址[：:]\s*([^\n]{5,100})/i,
-                /(香港[^\n]{5,100})/i,
-                /(九龍[^\n]{5,100})/i,
-                /(新界[^\n]{5,100})/i
-            ];
-            
-            for (const pattern of patterns) {
-                const match = text.match(pattern);
-                if (match && match[1]) {
-                    return match[1].trim();
-                }
-            }
-            
+            const ps = [/地址[：:]\s*([^\n]{5,100})/i, /(香港[^\n]{5,100})/i, /(九龍[^\n]{5,100})/i, /(新界[^\n]{5,100})/i];
+            for (const p of ps) { const m = text.match(p); if (m && m[1]) return m[1].trim(); }
             return null;
         }
-        
-        // 顯示結果
+
         function displayResult(result) {
-            const resultContent = document.getElementById('resultContent');
-            
             const fields = [
-                ['🔢 Job ID', 'jobId'],
-                ['📍 Grid', 'grid'],
-                ['🔧 Service #', 'serviceNumber'],
-                ['🏠 Address', 'address'],
-                ['📅 Date', 'appointmentDate'],
-                ['⏰ Time', 'time'],
-                ['👤 Contact', 'contact'],
-                ['📞 Phone', 'phone'],
-                ['📌 Status', 'status'],
-                ['📝 PID Desc', 'pidDesc']
+                ['🔢 Job ID', 'jobId'], ['📍 Grid', 'grid'],
+                ['🔧 Service #', 'serviceNumber'], ['🏠 Address', 'address'],
+                ['📅 Date', 'appointmentDate'], ['⏰ Time', 'time'],
+                ['👤 Contact', 'contact'], ['📞 Phone', 'phone'],
+                ['📌 Status', 'status'], ['📝 PID Desc', 'pidDesc']
             ];
-            
-            resultContent.innerHTML = fields.map(([label, key]) => `
-                <div class="field">
-                    <div class="field-label">${label}</div>
-                    <div class="field-value ${!result[key] ? 'empty' : ''}">${result[key] || '（未找到）'}</div>
-                </div>
-            `).join('');
-            
+            document.getElementById('resultContent').innerHTML = fields.map(([label, key]) =>
+                `<div class="field"><div class="field-label">${label}</div><div class="field-value ${!result[key] ? 'empty' : ''}">${result[key] || '（未找到）'}</div></div>`
+            ).join('');
             document.getElementById('resultSection').classList.add('show');
             showToast('✅ 提取完成！');
         }
-        
-        // 清除所有
+
+        function saveResult() {
+            if (!lastResult || !lastResult.jobId) { showToast('⚠️ 沒有可儲存的資料'); return; }
+            const saved = JSON.parse(localStorage.getItem('wfm_orders') || '[]');
+            if (saved.find(s => s.jobId === lastResult.jobId)) { showToast('⚠️ 此工單已儲存過'); return; }
+            lastResult.savedAt = new Date().toLocaleString('zh-TW');
+            saved.unshift(lastResult);
+            localStorage.setItem('wfm_orders', JSON.stringify(saved));
+            updateSavedCount();
+            showToast('💾 已儲存！');
+        }
+
+        function deleteSaved(jobId) {
+            let saved = JSON.parse(localStorage.getItem('wfm_orders') || '[]');
+            saved = saved.filter(s => s.jobId !== jobId);
+            localStorage.setItem('wfm_orders', JSON.stringify(saved));
+            updateSavedCount();
+            renderSavedList();
+            showToast('🗑️ 已刪除');
+        }
+
+        function renderSavedList() {
+            const saved = JSON.parse(localStorage.getItem('wfm_orders') || '[]');
+            const list = document.getElementById('savedList');
+            if (!saved.length) { list.innerHTML = '<div class="empty-msg">暫無已儲存的工單</div>'; return; }
+            list.innerHTML = saved.map(s => `
+                <div class="saved-item">
+                    <button class="delete-btn" onclick="deleteSaved('${s.jobId}')">✕</button>
+                    <div class="saved-title">#${s.jobId} — ${s.status || ''}</div>
+                    <div class="saved-detail">
+                        📍 ${s.grid || ''} | 🔧 ${s.serviceNumber || ''}<br>
+                        🏠 ${s.address || ''}<br>
+                        📅 ${s.appointmentDate || ''} ${s.time || ''}<br>
+                        👤 ${s.contact || ''} 📞 ${s.phone || ''}<br>
+                        📝 ${s.pidDesc || ''}<br>
+                        <small>儲存於 ${s.savedAt || ''}</small>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateSavedCount() {
+            const saved = JSON.parse(localStorage.getItem('wfm_orders') || '[]');
+            document.getElementById('savedCount').textContent = saved.length;
+        }
+
         function clearAll() {
             document.getElementById('inputText').value = '';
             document.getElementById('resultSection').classList.remove('show');
+            lastResult = null;
             showToast('🗑️ 已清除');
         }
-        
-        // 複製結果
+
         function copyResult() {
-            const resultContent = document.getElementById('resultContent');
-            const text = resultContent.innerText;
-            
-            navigator.clipboard.writeText(text).then(() => {
-                showToast('📋 已複製到剪貼簿！');
-            }).catch(() => {
-                showToast('❌ 複製失敗，請手動複製');
-            });
+            const text = document.getElementById('resultContent').innerText;
+            navigator.clipboard.writeText(text).then(() => showToast('📋 已複製！')).catch(() => showToast('❌ 複製失敗'));
         }
-        
-        // 顯示提示
+
         function showToast(message) {
             const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.add('show');
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
+            toast.textContent = message; toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
         }
+
+        // Init
+        updateSavedCount();
     </script>
 </body>
 </html>
