@@ -82,7 +82,7 @@ fun AddWorkOrderScreen(viewModel: WorkOrderViewModel, onNavigateToList: () -> Un
                 showPreview = true
             }
         }) {
-            Text("Extract Data")
+            Text("提取功能")
         }
         Spacer(modifier = Modifier.height(8.dp))
         if (showPreview && extractedOrder != null) {
@@ -91,13 +91,12 @@ fun AddWorkOrderScreen(viewModel: WorkOrderViewModel, onNavigateToList: () -> Un
                     Text("Extraction Preview", style = MaterialTheme.typography.titleMedium)
                     Divider()
                     Text("Job ID: ${extractedOrder!!.jobId}")
-                    Text("Service No: ${extractedOrder!!.serviceNumber}")
-                    Text("A-End Address: ${extractedOrder!!.addressA}")
-                    Text("B-End Address: ${extractedOrder!!.addressB}")
-                    Text("Date: ${extractedOrder!!.appointmentDate}")
+                    Text("Grid: ${extractedOrder!!.grid}")
+                    Text("Service Number: ${extractedOrder!!.serviceNumber}")
+                    Text("Address: ${extractedOrder!!.addressA}")
+                    Text("Appointment Date: ${extractedOrder!!.appointmentDate}")
                     Text("Time: ${extractedOrder!!.appointmentTime}")
                     Text("Contact: ${extractedOrder!!.contactName}")
-                    Text("Phone: ${extractedOrder!!.contactPhone}")
                     Text("Status: ${extractedOrder!!.status}")
                     Text("PID Desc: ${extractedOrder!!.pidDesc}")
                     Spacer(modifier = Modifier.height(8.dp))
