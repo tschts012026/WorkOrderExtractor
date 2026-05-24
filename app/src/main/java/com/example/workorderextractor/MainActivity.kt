@@ -4,34 +4,23 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.example.workorderextractor.data.AppDatabase
-import com.example.workorderextractor.data.WorkOrder
 import com.example.workorderextractor.ui.theme.WorkOrderExtractorTheme
-import com.example.workorderextractor.utils.WorkOrderExtractor
-import com.example.workorderextractor.viewmodel.WorkOrderViewModel
-import com.example.workorderextractor.viewmodel.WorkOrderViewModelFactory
 
 class MainActivity : ComponentActivity() {
-    private lateinit var db: AppDatabase
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        db = AppDatabase.getInstance(this)
         setContent {
             WorkOrderExtractorTheme {
-                Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
-                    AppNavigation(db)
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    MinimalScreen()
                 }
             }
         }
@@ -39,96 +28,44 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AppNavigation(db: AppDatabase) {
-    val navController = rememberNavController()
-    val factory = WorkOrderViewModelFactory(db)
-    val viewModel: WorkOrderViewModel = viewModel(factory = factory)
+fun MinimalScreen() {
+    var text by remember { mutableStateOf("") }
+    var result by remember { mutableStateOf("Press button to test") }
 
-    NavHost(navController = navController, startDestination = "input") {
-        composable("input") {
-            InputScreen(viewModel, onNavigateToList = { navController.navigate("list") })
-        }
-        composable("list") {
-            ListScreen(viewModel, onBack = { navController.popBackStack() })
-        }
-    }
-}
-
-@Composable
-fun InputScreen(viewModel: WorkOrderViewModel, onNavigateToList: () -> Unit) {
-    var rawText by remember { mutableStateOf("") }
-    var saveMessage by remember { mutableStateOf("") }
-
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text("Paste Work Order Article", style = MaterialTheme.typography.titleLarge)
-        Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(
-            value = rawText,
-            onValueChange = { rawText = it },
-            modifier = Modifier.fillMaxWidth().height(250.dp),
-            placeholder = { Text("Paste the entire work order text here...") }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Work Order Extractor",
+            style = MaterialTheme.typography.headlineSmall
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        Row {
-            Button(onClick = {
-                if (rawText.isNotBlank()) {
-                    val extracted = WorkOrderExtractor.extract(rawText)
-                    val hasData = listOf(extracted.jobId, extracted.grid, extracted.serviceNumber, 
-                        extracted.addressA, extracted.status, extracted.pidDesc).any { it.isNotBlank() }
-                    if (hasData) {
-                        viewModel.insertOrder(extracted)
-                        val displayId = if (extracted.jobId.isNotBlank()) "(Job ID: ${extracted.jobId})" else "(No Job ID)"
-                        saveMessage = "Saved successfully! $displayId"
-                        rawText = ""
-                    } else {
-                        saveMessage = "Failed to extract data. Check format."
-                    }
+        Spacer(modifier = Modifier.height(16.dp))
+        TextField(
+            value = text,
+            onValueChange = { text = it },
+            label = { Text("Input test") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = {
+                result = if (text.isNotEmpty()) {
+                    "Input received: ${text.take(20)}..."
                 } else {
-                    saveMessage = "Please paste some text."
-                }
-            }) {
-                Text("Extract & Save")
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            Button(onClick = onNavigateToList) {
-                Text("Show All")
-            }
-        }
-        if (saveMessage.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(saveMessage, color = MaterialTheme.colorScheme.primary)
-        }
-    }
-}
-
-@Composable
-fun ListScreen(viewModel: WorkOrderViewModel, onBack: () -> Unit) {
-    val orders by viewModel.orders.collectAsState()
-
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(onClick = onBack) {
-                Text("\u2190")
-            }
-            Text("All Saved Work Orders", style = MaterialTheme.typography.titleLarge)
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        LazyColumn {
-            items(orders) { order ->
-                Card(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text("Job ID: ${order.jobId}", style = MaterialTheme.typography.titleMedium)
-                        Text("Grid: ${order.grid}")
-                        Text("Service No: ${order.serviceNumber}")
-                        Text("Address: ${order.addressA}")
-                        Text("Date: ${order.appointmentDate} Time: ${order.appointmentTime}")
-                        Text("Contact: ${order.contactName}")
-                        Text("Status: ${order.status}")
-                        Text("PID Desc: ${order.pidDesc}")
-                        Divider(modifier = Modifier.padding(vertical = 4.dp))
-                    }
+                    "Please enter something"
                 }
             }
+        ) {
+            Text("Test Button")
         }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = result,
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }
