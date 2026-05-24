@@ -281,13 +281,26 @@
             let contactPhone = null;
             const contactRaw = fields['contact'] || null;
             if (contactRaw) {
-                const pm = contactRaw.match(/^(.*?)\s+(\d{8})$/);
+                // Try: "Ms Kwok 27450670" -> name + 8-digit phone
+                const pm = contactRaw.match(/^(.+?)\s+(\d{8})\s*$/);
                 if (pm) {
                     contactName = pm[1].trim();
                     contactPhone = pm[2];
                 } else {
-                    contactName = contactRaw;
+                    // Try extract phone from anywhere in contact
+                    const pm2 = contactRaw.match(/(\d{8})/);
+                    if (pm2) {
+                        contactPhone = pm2[1];
+                        contactName = contactRaw.replace(pm2[1], '').replace(/\s+$/, '').trim();
+                    } else {
+                        contactName = contactRaw;
+                    }
                 }
+            }
+            // Fallback: search whole text for phone if not found in Contact
+            if (!contactPhone) {
+                const phoneMatch = text.match(/(?:Tel|Phone|Contact)[:\s]*(\d{8})/i);
+                if (phoneMatch) contactPhone = phoneMatch[1];
             }
             
             return {
