@@ -6,6 +6,7 @@ object WorkOrderExtractor {
     fun extract(rawText: String): WorkOrder {
         // 預設空值
         var jobId = ""
+        var grid = ""
         var serviceNumber = ""
         var addressA = ""
         var addressB = ""
@@ -25,6 +26,10 @@ object WorkOrderExtractor {
                 // Job ID: 下一行就是數字
                 line.contains("Job ID", ignoreCase = true) && i + 1 < lines.size -> {
                     jobId = lines[i + 1].trim()
+                }
+                // Exchange / Grid
+                line.contains("Exchange / Grid", ignoreCase = true) && i + 1 < lines.size -> {
+                    grid = lines[i + 1].trim()
                 }
                 // Service Number (可能出現在多處，但優先抓取 General Information 下的)
                 line.contains("Service Number", ignoreCase = true) && i + 1 < lines.size -> {
@@ -70,16 +75,20 @@ object WorkOrderExtractor {
             val regex = Regex("Job ID\\s*\\n\\s*(\\d+)", RegexOption.IGNORE_CASE)
             jobId = regex.find(rawText)?.groupValues?.get(1) ?: ""
         }
+        if (grid.isEmpty()) {
+            val regex = Regex("Exchange / Grid\\s*\\n\\s*(.+?)(?=\\n)", RegexOption.IGNORE_CASE)
+            grid = regex.find(rawText)?.groupValues?.get(1)?.trim() ?: ""
+        }
         if (serviceNumber.isEmpty()) {
             val regex = Regex("Service Number\\s*\\n\\s*(\\d+)", RegexOption.IGNORE_CASE)
             serviceNumber = regex.find(rawText)?.groupValues?.get(1) ?: ""
         }
         if (addressA.isEmpty()) {
-            val regex = Regex("A End Address\\s*\\n\\s*(.+?)(?=\\n\\s*B End Address|\\n\\s*\\n|$)", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+            val regex = Regex("A End Address\\s*\\n\\s*(.+?)(?=\\n\\s*B End Address|\\n\\s*\\n|$)", RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
             addressA = regex.find(rawText)?.groupValues?.get(1)?.trim() ?: ""
         }
         if (addressB.isEmpty()) {
-            val regex = Regex("B End Address\\s*\\n\\s*(.+?)(?=\\n\\s*\\n|\\n\\s*2N|$)", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+            val regex = Regex("B End Address\\s*\\n\\s*(.+?)(?=\\n\\s*\\n|\\n\\s*2N|$)", RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
             addressB = regex.find(rawText)?.groupValues?.get(1)?.trim() ?: ""
         }
         if (appointmentDate.isEmpty()) {
@@ -103,12 +112,13 @@ object WorkOrderExtractor {
             status = regex.find(rawText)?.groupValues?.get(1) ?: ""
         }
         if (pidDesc.isEmpty()) {
-            val regex = Regex("PID Desc\\s*\\n\\s*(.+?)(?=\\n\\s*STB|\\n\\s*\\n|$)", setOf(RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL))
+            val regex = Regex("PID Desc\\s*\\n\\s*(.+?)(?=\\n\\s*STB|\\n\\s*\\n|$)", RegexOption.IGNORE_CASE, RegexOption.DOT_MATCHES_ALL)
             pidDesc = regex.find(rawText)?.groupValues?.get(1)?.trim() ?: ""
         }
 
         return WorkOrder(
             jobId = jobId,
+            grid = grid,
             serviceNumber = serviceNumber,
             addressA = addressA,
             addressB = addressB,

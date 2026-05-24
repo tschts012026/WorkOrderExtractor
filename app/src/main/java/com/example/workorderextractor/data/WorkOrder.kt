@@ -8,6 +8,7 @@ data class WorkOrder(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val jobId: String = "",
+    val grid: String = "",
     val serviceNumber: String = "",
     val addressA: String = "",
     val addressB: String = "",
