@@ -4,83 +4,43 @@ import com.example.workorderextractor.data.WorkOrder
 
 object WorkOrderExtractor {
     fun extract(rawText: String): WorkOrder {
-        var jobId = ""
-        var grid = ""
-        var serviceNumber = ""
-        var addressA = ""
-        var addressB = ""
-        var appointmentDate = ""
-        var appointmentTime = ""
-        var contactName = ""
-        var contactPhone = ""
-        var status = ""
-        var pidDesc = ""
+        // 將文本中的連續空白（包括換行）壓縮為單一空格，方便匹配
+        val compressed = rawText.replace(Regex("\\s+"), " ")
 
-        val lines = rawText.lines().map { it.trim() }
+        // 1. Job ID
+        val jobId = extractByPattern(compressed, Regex("Job ID\\s*(\\d+)", RegexOption.IGNORE_CASE))
 
-        // === 第一優先：冒號格式（用戶最常用）===
-        // 例如：日期: 2026/05/21  或  時間: 10:00 - 10:00 (EX)
-        for (line in lines) {
-            when {
-                // 冒號格式：標題在冒號前，數值在冒號後
-                Regex("^日期\\s*[:：]\\s*(.+)").find(line) != null ->
-                    appointmentDate = line.substringAfter(":").substringAfter("：").trim()
-                Regex("^時間\\s*[:：]\\s*(.+)").find(line) != null ->
-                    appointmentTime = line.substringAfter(":").substringAfter("：").trim()
-                Regex("^聯絡人\\s*[:：]\\s*(.+)").find(line) != null ->
-                    contactName = line.substringAfter(":").substringAfter("：").trim()
-                Regex("^電話\\s*[:：]\\s*(.+)").find(line) != null ->
-                    contactPhone = line.substringAfter(":").substringAfter("：").trim()
-                Regex("^Status\\s*[:：]\\s*(.+)", setOf(RegexOption.IGNORE_CASE)).find(line) != null ->
-                    status = line.substringAfter(":").substringAfter("：").trim()
-                Regex("^PID Desc\\s*[:：](.*)", setOf(RegexOption.IGNORE_CASE)).find(line) != null ->
-                    pidDesc = line.substringAfter(":").substringAfter("：").trim()
-                // A/B 端地址（冒號格式）
-                Regex("^A端地址\\s*[:：](.*)", setOf(RegexOption.IGNORE_CASE)).find(line) != null ->
-                    addressA = line.substringAfter(":").substringAfter("：").trim()
-                Regex("^B端地址\\s*[:：](.*)", setOf(RegexOption.IGNORE_CASE)).find(line) != null ->
-                    addressB = line.substringAfter(":").substringAfter("：").trim()
-                // Job ID
-                Regex("^Job ID\\s*[:：]?\\s*(\\d+)", setOf(RegexOption.IGNORE_CASE)).find(line) != null ->
-                    jobId = Regex("\\d+").find(line)?.value ?: ""
-                // Service Number
-                Regex("^Service No\\.?\\s*[:：]?\\s*(\\d+)", setOf(RegexOption.IGNORE_CASE)).find(line) != null ->
-                    serviceNumber = Regex("\\d+").find(line)?.value ?: ""
-                // Grid
-                Regex("^Grid\\s*[:：]?\\s*(.+)", setOf(RegexOption.IGNORE_CASE)).find(line) != null ->
-                    grid = line.substringAfter(":").substringAfter("：").trim().ifEmpty { line.substringAfter(" ").trim() }
-            }
-        }
+        // 2. Grid / Exchange
+        val grid = extractByPattern(compressed, Regex("(?:Exchange|Grid)\\s*([A-Z]+)", RegexOption.IGNORE_CASE))
 
-        // === 第二優先：標題 + 下一行格式（完整文章）===
-        if (jobId.isEmpty()) {
-            for (i in lines.indices) {
-                val line = lines[i]
-                when {
-                    line.contains("Job ID", ignoreCase = true) && i + 1 < lines.size && jobId.isEmpty() ->
-                        if (lines[i + 1].matches(Regex("\\d+"))) jobId = lines[i + 1].trim()
-                    line.contains("Exchange / Grid", ignoreCase = true) && i + 1 < lines.size && grid.isEmpty() ->
-                        grid = lines[i + 1].trim()
-                    line.contains("Service Number", ignoreCase = true) && i + 1 < lines.size && serviceNumber.isEmpty() ->
-                        serviceNumber = lines[i + 1].trim()
-                    line.contains("A End Address", ignoreCase = true) && i + 1 < lines.size && addressA.isEmpty() ->
-                        addressA = lines[i + 1].trim()
-                    line.contains("B End Address", ignoreCase = true) && i + 1 < lines.size && addressB.isEmpty() ->
-                        addressB = lines[i + 1].trim()
-                    line.contains("Appointment Date", ignoreCase = true) && i + 1 < lines.size && appointmentDate.isEmpty() ->
-                        appointmentDate = lines[i + 1].trim()
-                    line.contains("Appointment Time", ignoreCase = true) && i + 1 < lines.size && appointmentTime.isEmpty() ->
-                        appointmentTime = lines[i + 1].trim()
-                    line.contains("Contact Name", ignoreCase = true) && i + 1 < lines.size && contactName.isEmpty() ->
-                        contactName = lines[i + 1].trim()
-                    line.contains("Contact No.", ignoreCase = true) && i + 1 < lines.size && contactPhone.isEmpty() ->
-                        contactPhone = lines[i + 1].trim()
-                    line.equals("Status", ignoreCase = true) && i + 1 < lines.size && status.isEmpty() ->
-                        status = lines[i + 1].trim()
-                    line.contains("PID Desc", ignoreCase = true) && i + 1 < lines.size && pidDesc.isEmpty() ->
-                        pidDesc = lines[i + 1].trim()
-                }
-            }
+        // 3. Service Number
+        val serviceNumber = extractByPattern(compressed, Regex("Service Number\\s*(\\d+)", RegexOption.IGNORE_CASE))
+
+        // 4. A End Address
+        val addressA = extractMultiLineAddress(rawText, "A End Address", "B End Address")
+
+        // 5. B End Address  
+        val addressB = extractMultiLineAddress(rawText, "B End Address", "2N B/W Building|Customer Num|Appointment Information")
+
+        // 6. Appointment Date
+        val appointmentDate = extractByPattern(compressed, Regex("Appointment Date\\s*(\\d{4}/\\d{2}/\\d{2})", RegexOption.IGNORE_CASE))
+
+        // 7. Appointment Time
+        val appointmentTime = extractByPattern(compressed, Regex("(?:Appointment )?Time\\s*([\\d: -]+\\([^)]+\\))?", RegexOption.IGNORE_CASE))
+
+        // 8. Contact Name
+        val contactName = extractByPattern(compressed, Regex("Contact Name\\s*([A-Za-z]+(?:\\s+[A-Za-z]+)?)", RegexOption.IGNORE_CASE))
+
+        // 9. Contact No.
+        val contactPhone = extractByPattern(compressed, Regex("Contact No\\.?\\s*(\\d+)", RegexOption.IGNORE_CASE))
+
+        // 10. Status
+        val status = extractByPattern(compressed, Regex("Status\\s*(\\w+)", RegexOption.IGNORE_CASE))
+
+        // 11. PID Desc - 先嘗試原始文本（保留換行），再試壓縮文本
+        var pidDesc = extractByPattern(rawText, Regex("PID Desc[\\s\\S]*?\\n\\s*(.+?)(?=\\n\\s*STB|\\n\\s*\\n|$)", RegexOption.IGNORE_CASE))
+        if (pidDesc.isEmpty()) {
+            pidDesc = extractByPattern(compressed, Regex("PID Desc\\s*(.+?)(?=\\s+STB|\\s+Appointment|\\s+$)", RegexOption.IGNORE_CASE))
         }
 
         return WorkOrder(
@@ -97,5 +57,25 @@ object WorkOrderExtractor {
             pidDesc = pidDesc,
             rawText = rawText
         )
+    }
+
+    private fun extractByPattern(text: String, regex: Regex): String {
+        return regex.find(text)?.groupValues?.get(1)?.trim() ?: ""
+    }
+
+    private fun extractMultiLineAddress(fullText: String, startKeyword: String, endKeyword: String): String {
+        // 嘗試匹配標題 + 內容（跨多行）
+        val multiLinePattern = Regex("$startKeyword\\s*(.+?)(?=\\s*$endKeyword|\\s+\\n|\\n\\s*$|\\s*$)", RegexOption.IGNORE_CASE or RegexOption.DOT_MATCHES_ALL)
+        val match = multiLinePattern.find(fullText)
+        if (match != null) {
+            return match.groupValues[1].trim().replace(Regex("\\s+"), " ")
+        }
+        // 冒號格式：標題: 內容
+        val colonPattern = Regex("$startKeyword\\s*[：:]\\s*(.+?)(?=\\s*[B端A端]|$)", RegexOption.IGNORE_CASE)
+        val colonMatch = colonPattern.find(fullText)
+        if (colonMatch != null) {
+            return colonMatch.groupValues[1].trim()
+        }
+        return ""
     }
 }
