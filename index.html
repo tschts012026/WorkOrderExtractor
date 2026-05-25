@@ -177,6 +177,7 @@
                 <button class="active" onclick="switchTab('home', this)">🏠 今日工作</button>
                 <button onclick="switchTab('extract', this)">📝 提取</button>
                 <button onclick="switchTab('history', this)">📦 歷史</button>
+                <button onclick="switchTab('alldates', this)">📅 全部</button>
             </div>
 
             <!-- HOME TAB -->
@@ -209,6 +210,11 @@
                 </div>
             </div>
 
+            <!-- ALL DATES TAB -->
+            <div id="tab-alldates" class="tab-content">
+                <div id="allDatesList"></div>
+            </div>
+
             <!-- HISTORY TAB -->
             <div id="tab-history" class="tab-content">
                 <div id="historyList"></div>
@@ -228,6 +234,7 @@
             btn.classList.add('active');
             if (tab === 'home') renderHome();
             if (tab === 'history') renderHistory();
+            if (tab === 'alldates') renderAllDates();
         }
 
         function getOrders() { return JSON.parse(localStorage.getItem('wfm_orders') || '[]'); }
@@ -396,6 +403,39 @@
                 gOrders.forEach((s, i) => { html += renderOrderCard(s, i, false); });
             });
             document.getElementById('historyList').innerHTML = html;
+        }
+
+        // ===== ALL DATES TAB =====
+        function renderAllDates() {
+            const orders = getOrders();
+            if (!orders.length) {
+                document.getElementById('allDatesList').innerHTML = '<div class="empty-msg">暫無工單</div>';
+                return;
+            }
+            const groups = {};
+            orders.forEach(s => {
+                const k = s.appointmentDate || '未指定日期';
+                if (!groups[k]) groups[k] = [];
+                groups[k].push(s);
+            });
+            const sortedKeys = Object.keys(groups).sort((a, b) => {
+                if (a === '未指定日期') return 1;
+                if (b === '未指定日期') return -1;
+                return b.localeCompare(a);
+            });
+            const todayStr = formatDateObj(new Date());
+            let html = '';
+            sortedKeys.forEach(dateKey => {
+                const gOrders = groups[dateKey];
+                const wd = dateKey !== '未指定日期' ? getWeekday(dateKey) : '';
+                const isToday = dateKey === todayStr;
+                const active = gOrders.filter(s => !s.orderStatus || s.orderStatus === 'active').length;
+                const done = gOrders.filter(s => s.orderStatus === 'done').length;
+                const paused = gOrders.filter(s => s.orderStatus === 'paused').length;
+                html += `<div class="date-summary" style="cursor:pointer;" onclick="selectedDate='${dateKey}';switchTab('home',document.querySelectorAll('.tab-bar button')[0])">📅 ${dateKey} ${wd}${isToday ? ' 🔴' : ''} — ${active}待做 ✅${done} ⏸${paused}（撳入查看）</div>`;
+                gOrders.forEach((s, i) => { html += renderOrderCard(s, i, !s.orderStatus || s.orderStatus === 'active'); });
+            });
+            document.getElementById('allDatesList').innerHTML = html;
         }
 
         // ===== EXTRACT LOGIC =====
