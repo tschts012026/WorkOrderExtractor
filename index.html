@@ -4,71 +4,45 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WFM</title>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#667eea">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:12px}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;padding:12px}
 .container{max-width:800px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.2);overflow:hidden}
-.header{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:16px;text-align:center;font-size:20px;font-weight:700}
+.header{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:14px;text-align:center;font-size:20px;font-weight:700}
 .tab-bar{display:flex;border-bottom:2px solid #eee}
-.tab-btn{flex:1;padding:12px 8px;text-align:center;font-size:14px;font-weight:600;border:none;background:none;cursor:pointer;color:#999;border-bottom:3px solid transparent;transition:.2s}
+.tab-btn{flex:1;padding:11px 6px;text-align:center;font-size:13px;font-weight:600;border:none;background:none;cursor:pointer;color:#999;border-bottom:3px solid transparent}
 .tab-btn.active{color:#667eea;border-bottom-color:#667eea}
-.tab-btn:active{background:#f0f0f0}
-.tab-content{display:none;padding:16px}
+.tab-content{display:none;padding:14px}
 .tab-content.active{display:block}
-
-.summary{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-.summary span{padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600}
-.s-pending{background:#fff3cd;color:#856404}
-.s-done{background:#d4edda;color:#155724}
-.s-paused{background:#f8d7da;color:#721c24}
-
-/* Order Card */
-.order-card{background:#fafafa;border-radius:12px;padding:12px;margin-bottom:10px;border-left:4px solid #667eea;position:relative}
-.order-card.done{border-left-color:#28a745;opacity:.7}
-.order-card.paused{border-left-color:#ffc107;opacity:.7}
-.order-top{display:flex;justify-content:space-between;align-items:start;margin-bottom:6px}
-.order-id{font-weight:700;color:#667eea;font-size:15px}
-.order-status{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
-.st-active{background:#e3f2fd;color:#1565c0}
-.st-complete{background:#c8e6c9;color:#2e7d32}
-.st-paused{background:#fff9c4;color:#f57f17}
-.order-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:13px;color:#555}
-.order-field{display:flex;gap:4px}
-.order-label{color:#999;font-size:11px;min-width:40px}
-.order-value{color:#333;word-break:break-all}
-.order-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
-.order-actions input[type=number]{width:70px;padding:4px 8px;border:1px solid #ddd;border-radius:8px;font-size:12px}
-.order-actions button{padding:4px 12px;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600}
-.btn-done{background:#28a745;color:#fff}
-.btn-pause{background:#ffc107;color:#333}
-.btn-restore{background:#17a2b8;color:#fff}
-.btn-del{background:#dc3545;color:#fff}
-.btn-fare{background:#6f42c1;color:#fff}
-.order-meta{display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:#bbb}
-
-/* Extract */
-textarea{width:100%;height:150px;border:2px solid #ddd;border-radius:12px;padding:12px;font-size:14px;font-family:monospace;resize:vertical}
-.extract-btns{display:flex;gap:8px;margin-top:10px}
-.extract-btns button{flex:1;padding:12px;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:.2s}
-.btn-extract{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
-.btn-extract:active{transform:scale(.98)}
-.btn-clear{background:#f0f0f0;color:#666}
-.result-box{margin-top:12px;padding:12px;background:#f8f9fa;border-radius:12px;display:none}
-.result-item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee;font-size:13px}
-.result-label{color:#999;font-weight:600;min-width:80px}
-.result-value{color:#333;text-align:right;word-break:break-all;max-width:60%}
-
-/* History */
-.history-section{margin-top:8px}
-.history-date{font-weight:700;color:#667eea;margin:12px 0 6px;font-size:14px}
-.empty{text-align:center;padding:40px 20px;color:#ccc;font-size:14px}
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 24px;border-radius:24px;font-size:14px;z-index:999;opacity:0;transition:.3s}
+.summary{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.summary span{padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600}
+.s-p{background:#fff3cd;color:#856404}.s-d{background:#d4edda;color:#155724}.s-h{background:#f8d7da;color:#721c24}
+.order-card{background:#fafafa;border-radius:12px;padding:10px;margin-bottom:8px;border-left:4px solid #667eea}
+.order-card.done{border-left-color:#28a745;opacity:.7}.order-card.paused{border-left-color:#ffc107;opacity:.7}
+.ot{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.oid{font-weight:700;color:#667eea;font-size:14px}
+.ost{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
+.osa{background:#e3f2fd;color:#1565c0}.osd{background:#c8e6c9;color:#2e7d32}.osh{background:#fff9c4;color:#f57f17}
+.og{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;font-size:12px;color:#555}
+.of{display:flex;gap:4px}.ol{color:#999;font-size:10px;min-width:36px}.ov{color:#333;word-break:break-all}
+.oaddr{margin-top:3px;font-size:11px;color:#888}.opid{font-size:11px;color:#667eea}
+.oact{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;align-items:center}
+.oact input{width:60px;padding:3px 6px;border:1px solid #ddd;border-radius:8px;font-size:11px}
+.oact button{padding:3px 10px;border:none;border-radius:8px;font-size:11px;cursor:pointer;font-weight:600}
+.bd{background:#28a745;color:#fff}.bp{background:#ffc107;color:#333}.br{background:#17a2b8;color:#fff}.bx{background:#dc3545;color:#fff}.bf{background:#6f42c1;color:#fff}
+textarea{width:100%;height:140px;border:2px solid #ddd;border-radius:12px;padding:10px;font-size:13px;font-family:monospace;resize:vertical}
+.ebtn{display:flex;gap:8px;margin-top:8px}
+.ebtn button{flex:1;padding:10px;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
+.bext{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}.bclr{background:#f0f0f0;color:#666}
+.rbox{margin-top:10px;padding:10px;background:#f8f9fa;border-radius:10px;display:none}
+.ri{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eee;font-size:12px}
+.rl{color:#999;font-weight:600;min-width:70px}.rv{color:#333;text-align:right;word-break:break-all;max-width:60%}
+.empty{text-align:center;padding:30px 15px;color:#ccc;font-size:13px}
+.ddate{font-weight:700;color:#667eea;margin:8px 0 4px;font-size:13px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;z-index:999;opacity:0;transition:.3s}
 .toast.show{opacity:1}
-@media(max-width:480px){.order-grid{grid-template-columns:1fr}.date-bar{gap:4px}}
-/* Date Picker */
-#allDatePicker{width:100%;padding:10px;border:2px solid #ddd;border-radius:12px;font-size:15px;background:#f8f8f8;color:#333}
+#allDatePicker{width:100%;padding:8px;border:2px solid #ddd;border-radius:10px;font-size:14px;margin-bottom:10px}
+@media(max-width:480px){.og{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -81,338 +55,176 @@ textarea{width:100%;height:150px;border:2px solid #ddd;border-radius:12px;paddin
 <button class="tab-btn" onclick="switchTab('history')">History</button>
 </div>
 <div id="tab-home" class="tab-content active">
-<div class="summary" id="summary"></div>
-<div id="orderList"></div>
+<div class="summary" id="homeSummary"></div>
+<div id="homeList"></div>
 </div>
 <div id="tab-extract" class="tab-content">
 <textarea id="inputText" placeholder="Paste work order here..."></textarea>
-<div class="extract-btns">
-<button class="btn-extract" onclick="doExtract()">Extract</button>
-<button class="btn-clear" onclick="clearInput()">Clear</button>
+<div class="ebtn">
+<button class="bext" onclick="doExtract()">Extract</button>
+<button class="bclr" onclick="clearInput()">Clear</button>
 </div>
-<div class="result-box" id="resultBox"></div>
+<div class="rbox" id="resultBox"></div>
 </div>
 <div id="tab-all" class="tab-content">
-<div style="margin-bottom:12px">
-<input type="date" id="allDatePicker" onchange="renderAll()" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:12px;font-size:15px">
-</div>
+<input type="date" id="allDatePicker" onchange="renderAll()">
 <div class="summary" id="allSummary"></div>
-<div id="allOrderList"></div>
+<div id="allList"></div>
 </div>
 <div id="tab-history" class="tab-content">
-<div class="summary" id="historySummary"></div>
-<div id="historyList"></div>
+<div class="summary" id="histSummary"></div>
+<div id="histList"></div>
 </div>
 </div>
 <div class="toast" id="toast"></div>
 <script>
-var selectedDate = new Date().toISOString().split('T')[0];
-
-function getDateStr(d){ return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0'); }
-function getWeekday(d){ return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]; }
-function todayStr(){ return getDateStr(new Date()); }
-function tomorrowStr(){ var d=new Date(); d.setDate(d.getDate()+1); return getDateStr(d); }
-function escapeHtml(s){ if(!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-function getOrders(){ try { return JSON.parse(localStorage.getItem('wfm_orders')||'[]'); } catch(e){ return []; } }
-function saveOrders(orders){ localStorage.setItem('wfm_orders', JSON.stringify(orders)); }
-;
-    orders.forEach(function(o){ if(o.appointmentDate){ dates[o.appointmentDate]=true; } });
-    return Object.keys(dates).sort().reverse();
-}
-); }
-);
-}
+function esc(s){return s?s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"):"";}
+function todayStr(){var d=new Date();return d.getFullYear()+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+String(d.getDate()).padStart(2,"0");}
+function getOrders(){try{return JSON.parse(localStorage.getItem("wfm_orders")||"[]");}catch(e){return[];}}
+function saveOrders(o){localStorage.setItem("wfm_orders",JSON.stringify(o));}
+function findIdx(jobId,sn,date){var o=getOrders();for(var i=0;i<o.length;i++){if(o[i].jobId===jobId&&o[i].serviceNumber===sn&&o[i].appointmentDate===date)return i;}return-1;}
 
 function switchTab(name){
-    document.querySelectorAll('.tab-content').forEach(function(el){ el.classList.remove('active'); });
-    document.querySelectorAll('.tab-btn').forEach(function(el){ el.classList.remove('active'); });
-    document.getElementById('tab-'+name).classList.add('active');
-    var btns=document.querySelectorAll('.tab-btn');
-    if(name==='home') btns[0].classList.add('active');
-    else if(name==='extract') btns[1].classList.add('active');
-    else btns[2].classList.add('active');
-    if(name==='home') renderHome();
-    else if(name==='all'){ renderAll(); }
-    else if(name==='history') renderHistory();
+  document.querySelectorAll(".tab-content").forEach(function(e){e.classList.remove("active");});
+  document.querySelectorAll(".tab-btn").forEach(function(e){e.classList.remove("active");});
+  document.getElementById("tab-"+name).classList.add("active");
+  var btns=document.querySelectorAll(".tab-btn");
+  var map={home:0,extract:1,all:2,history:3};
+  btns[map[name]].classList.add("active");
+  if(name==="home")renderHome();
+  else if(name==="all")renderAll();
+  else if(name==="history")renderHistory();
 }
-
-);
-        html+='</select>';
-    }
-    bar.innerHTML=html;
-}
-
- }
-
-function todayStr(){ var d=new Date(); return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0'); }
 
 function renderHome(){
-    var td=todayStr();
-    var orders=getOrders().filter(function(o){ return o.appointmentDate===td && o.orderStatus!=='done' && o.orderStatus!=='paused'; });
-
-    document.getElementById('summary').innerHTML='<span class="s-pending">'+orders.length+' orders for Today ('+td+')</span>';
-
-    var list=document.getElementById('orderList');
-    if(orders.length===0){
-        list.innerHTML='<div class="empty">No orders for today ('+td+')</div>';
-        return;
-    }
-    var h='';
-    orders.forEach(function(o,i){ h+=renderCard(o,i); });
-    list.innerHTML=h;
-}
-
-function renderCard(o,idx){
-    var cls=o.orderStatus==='done'?' done':o.orderStatus==='paused'?' paused':'';
-    var cls=o.orderStatus==='done'?' done':o.orderStatus==='paused'?' paused':'';
-    var stCls=o.orderStatus==='done'?'st-complete':o.orderStatus==='paused'?'st-paused':'st-active';
-    var stText=o.orderStatus==='done'?'DONE':o.orderStatus==='paused'?'PAUSED':'ACTIVE';
-    var html='<div class="order-card'+cls+'" id="card-'+idx+'">';
-    html+='<div class="order-top"><div class="order-id">'+escapeHtml(o.jobId||'N/A')+'</div>';
-    html+='<span class="order-status '+stCls+'">'+stText+'</span></div>';
-    html+='<div class="order-grid">';
-    html+=field('Grid',o.grid)+field('Service #',o.serviceNumber)+field('BSN',o.bsn)+field('Time',o.time);
-    html+=field('Status',o.status)+field('Contact',o.contact)+field('Phone',o.phone);
-    html+='</div>';
-    if(o.address) html+='<div class="order-field" style="margin-top:4px;font-size:12px;color:#888">'+escapeHtml(o.address)+'</div>';
-    if(o.pidDesc) html+='<div class="order-field" style="font-size:12px;color:#667eea">'+escapeHtml(o.pidDesc)+'</div>';
-    html+='<div class="order-actions">';
-    html+='<input type="number" placeholder="Fare" value="'+(o.fare||'')+'" onchange="updateFare('+idx+',this.value)">';
-    html+='<button class="btn-fare" onclick="updateFare('+idx+',this.previousElementSibling.value)">Save</button>';
-    html+='<button class="btn-done" onclick="markOrder('+idx+',\'done\')">Done</button>';
-    html+='<button class="btn-pause" onclick="markOrder('+idx+',\'paused\')">Pause</button>';
-    html+='</div>';
-    html+='<div class="order-meta"><span>'+escapeHtml(o.contact||'')+' '+escapeHtml(o.phone||'')+'</span></div>';
-    html+='</div>';
-    return html;
-}
-
-function field(label,value){
-    if(!value) return '';
-    return '<div class="order-field"><span class="order-label">'+label+'</span><span class="order-value">'+escapeHtml(value)+'</span></div>';
-}
-
-function updateFare(jobId,sn,date,val){
-    var orders=getOrders();
-    for(var i=0;i<orders.length;i++){
-        if(orders[i].jobId===jobId&&orders[i].serviceNumber===sn&&orders[i].appointmentDate===date){
-            orders[i].fare=val; saveOrders(orders); showToast('Fare saved'); return;
-        }
-    }
-}
-
-function markOrder(jobId,sn,date,status){
-    var orders=getOrders();
-    for(var i=0;i<orders.length;i++){
-        if(orders[i].jobId===jobId&&orders[i].serviceNumber===sn&&orders[i].appointmentDate===date){
-            orders[i].orderStatus=status; saveOrders(orders); renderHome(); showToast(status==='done'?'Done!':'Paused'); return;
-        }
-    }
+  var td=todayStr();
+  var orders=getOrders().filter(function(o){return o.appointmentDate===td&&o.orderStatus!=="done"&&o.orderStatus!=="paused";});
+  document.getElementById("homeSummary").innerHTML="<span class=\"s-p\">"+orders.length+" orders today ("+td+")</span>";
+  if(orders.length===0){document.getElementById("homeList").innerHTML="<div class=\"empty\">No orders for today</div>";return;}
+  var h="";orders.forEach(function(o){h+=card(o);});document.getElementById("homeList").innerHTML=h;
 }
 
 function renderAll(){
-    var dp=document.getElementById('allDatePicker');
-    if(!dp.value) dp.value=new Date().toISOString().split('T')[0];
-    var sel=dp.value; // YYYY-MM-DD format from date input
-    // Convert to YYYY/MM/DD to match our stored format
-    var d=sel.split('-');
-    var dateStr=d[0]+'/'+d[1]+'/'+d[2];
-    
-    var allForDate=getOrders().filter(function(o){ return o.appointmentDate===dateStr; });
-    var active=allForDate.filter(function(o){return o.orderStatus!=='done'&&o.orderStatus!=='paused';});
-    var done=allForDate.filter(function(o){return o.orderStatus==='done';});
-    var paused=allForDate.filter(function(o){return o.orderStatus==='paused';});
-    
-    document.getElementById('allSummary').innerHTML=
-        '<span class="s-pending">'+active.length+' active</span>'+
-        (done.length?'<span class="s-done">'+done.length+' done</span>':'')+
-        (paused.length?'<span class="s-paused">'+paused.length+' paused</span>':'')+
-        '<span style="padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;background:#e8e8e8;color:#555">'+allForDate.length+' total</span>';
-
-    var list=document.getElementById('allOrderList');
-    if(allForDate.length===0){
-        list.innerHTML='<div class="empty">No orders for '+dateStr+'</div>';
-        return;
-    }
-    var h='';
-    allForDate.forEach(function(o,i){ h+=renderCardFull(o,i); });
-    list.innerHTML=h;
-}
-
-function renderCardFull(o,idx){
-    var cls=o.orderStatus==='done'?' done':o.orderStatus==='paused'?' paused':'';
-    var stCls=o.orderStatus==='done'?'st-complete':o.orderStatus==='paused'?'st-paused':'st-active';
-    var stText=o.orderStatus==='done'?'DONE':o.orderStatus==='paused'?'PAUSED':'ACTIVE';
-    var html='<div class="order-card'+cls+'" id="card-'+idx+'">';
-    html+='<div class="order-top"><div class="order-id">'+escapeHtml(o.jobId||'N/A')+'</div>';
-    html+='<span class="order-status '+stCls+'">'+stText+'</span></div>';
-    html+='<div class="order-grid">';
-    html+=field('Grid',o.grid)+field('Service #',o.serviceNumber)+field('BSN',o.bsn)+field('Date',o.appointmentDate);
-    html+=field('Time',o.time)+field('Status',o.status)+field('Contact',o.contact)+field('Phone',o.phone);
-    html+='</div>';
-    if(o.address) html+='<div class="order-field" style="margin-top:4px;font-size:12px;color:#888">Address: '+escapeHtml(o.address)+'</div>';
-    if(o.pidDesc) html+='<div class="order-field" style="font-size:12px;color:#667eea">PID: '+escapeHtml(o.pidDesc)+'</div>';
-    html+='<div class="order-actions">';
-    html+='<input type="number" placeholder="Fare" value="'+(o.fare||'')+'" onchange="updateFare(\''+o.jobId+'\',\''+o.serviceNumber+'\',\''+o.appointmentDate+'\',this.value)">';
-    html+='<button class="btn-fare" onclick="updateFare(\''+o.jobId+'\',\''+o.serviceNumber+'\',\''+o.appointmentDate+'\',this.previousElementSibling.value)">Save</button>';
-    if(o.orderStatus!=='done'&&o.orderStatus!=='paused'){
-        html+='<button class="btn-done" onclick="markOrder(\''+o.jobId+'\',\''+o.serviceNumber+'\',\''+o.appointmentDate+'\',\'done\')">Done</button>';
-        html+='<button class="btn-pause" onclick="markOrder(\''+o.jobId+'\',\''+o.serviceNumber+'\',\''+o.appointmentDate+'\',\'paused\')">Pause</button>';
-    } else {
-        html+='<button class="btn-restore" onclick="markOrder(\''+o.jobId+'\',\''+o.serviceNumber+'\',\''+o.appointmentDate+'\',\'active\')">Restore</button>';
-    }
-    html+='</div>';
-    if(o.fare) html+='<div class="order-meta"><span>Fare: $'+o.fare+'</span></div>';
-    html+='</div>';
-    return html;
+  var dp=document.getElementById("allDatePicker");
+  if(!dp.value){dp.value=new Date().toISOString().split("T")[0];}
+  var p=dp.value.split("-");var ds=p[0]+"/"+p[1]+"/"+p[2];
+  var all=getOrders().filter(function(o){return o.appointmentDate===ds;});
+  var ac=all.filter(function(o){return o.orderStatus!=="done"&&o.orderStatus!=="paused";}).length;
+  var dc=all.filter(function(o){return o.orderStatus==="done";}).length;
+  var hc=all.filter(function(o){return o.orderStatus==="paused";}).length;
+  document.getElementById("allSummary").innerHTML="<span class=\"s-p\">"+ac+" active</span>"+(dc?"<span class=\"s-d\">"+dc+" done</span>":"")+(hc?"<span class=\"s-h\">"+hc+" paused</span>":"");
+  if(all.length===0){document.getElementById("allList").innerHTML="<div class=\"empty\">No orders for "+ds+"</div>";return;}
+  var h="";all.forEach(function(o){h+=cardFull(o);});document.getElementById("allList").innerHTML=h;
 }
 
 function renderHistory(){
-    var orders=getOrders().filter(function(o){ return o.orderStatus==='done'||o.orderStatus==='paused'; });
-    var totalFare=orders.reduce(function(s,o){ return s+parseFloat(o.fare||0); },0);
-    document.getElementById('historySummary').innerHTML=
-        '<span class="s-done">'+orders.filter(function(o){return o.orderStatus==='done';}).length+' done</span>'+
-        '<span class="s-paused">'+orders.filter(function(o){return o.orderStatus==='paused';}).length+' paused</span>'+
-        '<span class="s-pending">Total fare: $'+totalFare.toFixed(1)+'</span>';
-
-    var byDate={};
-    orders.forEach(function(o){
-        if(!byDate[o.appointmentDate]) byDate[o.appointmentDate]=[];
-        byDate[o.appointmentDate].push(o);
-    });
-    var dates=Object.keys(byDate).sort().reverse();
-    if(dates.length===0){ document.getElementById('historyList').innerHTML='<div class="empty">No history</div>'; return; }
-    var html='';
-    dates.forEach(function(d){
-        html+='<div class="history-date">'+d+'</div>';
-        byDate[d].forEach(function(o,i){
-            var stCls=o.orderStatus==='done'?'st-complete':'st-paused';
-            var stText=o.orderStatus==='done'?'DONE':'PAUSED';
-            html+='<div class="order-card '+(o.orderStatus==='done'?'done':'paused')+'">';
-            html+='<div class="order-top"><div class="order-id">'+escapeHtml(o.jobId||'N/A')+'</div>';
-            html+='<span class="order-status '+stCls+'">'+stText+'</span></div>';
-            html+='<div class="order-grid">';
-            html+=field('Grid',o.grid)+field('Service #',o.serviceNumber)+field('BSN',o.bsn)+field('Contact',o.contact)+field('Phone',o.phone);
-            html+='</div>';
-            if(o.fare) html+='<div class="order-meta"><span>Fare: $'+o.fare+'</span></div>';
-            html+='<div class="order-actions"><button class="btn-restore" onclick="restoreOrder(\''+o.jobId+'\',\''+o.serviceNumber+'\',\''+o.appointmentDate+'\')">Restore</button>';
-            html+='<button class="btn-del" onclick="deleteOrder(\''+o.jobId+'\',\''+o.serviceNumber+'\',\''+o.appointmentDate+'\')">Delete</button></div>';
-            html+='</div>';
-        });
-    });
-    document.getElementById('historyList').innerHTML=html;
+  var orders=getOrders().filter(function(o){return o.orderStatus==="done"||o.orderStatus==="paused";});
+  var tf=orders.reduce(function(s,o){return s+parseFloat(o.fare||0);},0);
+  document.getElementById("histSummary").innerHTML="<span class=\"s-d\">"+orders.filter(function(o){return o.orderStatus==="done";}).length+" done</span> <span class=\"s-h\">"+orders.filter(function(o){return o.orderStatus==="paused";}).length+" paused</span> <span class=\"s-p\">Total: $"+tf.toFixed(1)+"</span>";
+  if(orders.length===0){document.getElementById("histList").innerHTML="<div class=\"empty\">No history</div>";return;}
+  var byD={};orders.forEach(function(o){if(!byD[o.appointmentDate])byD[o.appointmentDate]=[];byD[o.appointmentDate].push(o);});
+  var h="";Object.keys(byD).sort().reverse().forEach(function(d){
+    h+="<div class=\"ddate\">"+d+"</div>";byD[d].forEach(function(o){h+=cardHist(o);});
+  });document.getElementById("histList").innerHTML=h;
 }
 
-function restoreOrder(jobId,sn,date){
-    var orders=getOrders();
-    orders.forEach(function(o){
-        if(o.jobId===jobId && o.serviceNumber===sn && o.appointmentDate===date){ o.orderStatus='active'; }
-    });
-    saveOrders(orders); renderHistory(); showToast('Restored');
+function card(o){
+  var s=o.orderStatus==="done"?"done":o.orderStatus==="paused"?"paused":"";
+  return "<div class=\"order-card "+s+"\">"+cardInner(o,false)+"</div>";
+}
+function cardFull(o){
+  var s=o.orderStatus==="done"?"done":o.orderStatus==="paused"?"paused":"";
+  return "<div class=\"order-card "+s+"\">"+cardInner(o,true)+"</div>";
+}
+function cardHist(o){
+  var s=o.orderStatus==="done"?"done":"paused";
+  return "<div class=\"order-card "+s+"\">"+cardInner(o,true)+"</div>";
 }
 
-function deleteOrder(jobId,sn,date){
-    if(!confirm('Delete this order?')) return;
-    var orders=getOrders().filter(function(o){ return !(o.jobId===jobId && o.serviceNumber===sn && o.appointmentDate===date); });
-    saveOrders(orders); renderHistory(); showToast('Deleted');
+function cardInner(o,full){
+  var sc=o.orderStatus==="done"?"osd":o.orderStatus==="paused"?"osh":"osa";
+  var st=o.orderStatus==="done"?"DONE":o.orderStatus==="paused"?"PAUSED":"ACTIVE";
+  var h="<div class=\"ot\"><div class=\"oid\">"+esc(o.jobId||"N/A")+"</div><span class=\"ost "+sc+"\">"+st+"</span></div>";
+  h+="<div class=\"og\">";
+  h+=fld("Grid",o.grid)+fld("Svc#",o.serviceNumber)+fld("BSN",o.bsn);
+  if(full){h+=fld("Date",o.appointmentDate);}
+  h+=fld("Time",o.time)+fld("Status",o.status)+fld("Contact",o.contact)+fld("Phone",o.phone);
+  h+="</div>";
+  if(o.address)h+="<div class=\"oaddr\">"+esc(o.address)+"</div>";
+  if(o.pidDesc)h+="<div class=\"opid\">"+esc(o.pidDesc)+"</div>";
+  h+="<div class=\"oact\">";
+  h+="<input type=\"number\" placeholder=\"Fare\" value=\""+(o.fare||"")+"\">";
+  h+="<button class=\"bf\" onclick=\"doFare(this,"+JSON.stringify(o.jobId)+","+JSON.stringify(o.serviceNumber)+","+JSON.stringify(o.appointmentDate)+")\">Save</button>";
+  if(o.orderStatus!=="done"&&o.orderStatus!=="paused"){
+    h+="<button class=\"bd\" onclick=\"doMark(this,"+JSON.stringify(o.jobId)+","+JSON.stringify(o.serviceNumber)+","+JSON.stringify(o.appointmentDate)+",'done')\">Done</button>";
+    h+="<button class=\"bp\" onclick=\"doMark(this,"+JSON.stringify(o.jobId)+","+JSON.stringify(o.serviceNumber)+","+JSON.stringify(o.appointmentDate)+",'paused')\">Pause</button>";
+  }else{
+    h+="<button class=\"br\" onclick=\"doMark(this,"+JSON.stringify(o.jobId)+","+JSON.stringify(o.serviceNumber)+","+JSON.stringify(o.appointmentDate)+",'active')\">Restore</button>";
+  }
+  h+="</div>";
+  if(o.fare)h+="<div style=\"font-size:11px;color:#999;margin-top:2px\">Fare: $"+esc(o.fare)+"</div>";
+  return h;
 }
 
-/* ===== EXTRACT ===== */
-var knownLabels = {
-    'job id':'job id','jobid':'job id',
-    'exchange / grid':'exchange / grid','grid':'grid',
-    'bsn':'bsn','bsn.':'bsn',
-    'service number':'service number','service #':'service number',
-    'appointment date':'appointment date',
-    'appointment time':'appointment time',
-    'status':'status',
-    'pid desc':'pid desc','pid':'pid desc',
-    'a end address':'a end address','address':'a end address',
-    'address showmap':'a end address',
-    'contact name':'contact name',
-    'contact no.':'contact no.','contact no':'contact no.',
-    'contact mobile':'contact mobile'
-};
+function fld(l,v){return v?"<div class=\"of\"><span class=\"ol\">"+l+"</span><span class=\"ov\">"+esc(v)+"</span></div>":"";}
+
+function doFare(btn,jobId,sn,date){
+  var val=btn.previousElementSibling.value;
+  var orders=getOrders();var i=findIdx(jobId,sn,date);
+  if(i>=0){orders[i].fare=val;saveOrders(orders);toast("Fare saved");}
+}
+function doMark(btn,jobId,sn,date,status){
+  var orders=getOrders();var i=findIdx(jobId,sn,date);
+  if(i>=0){orders[i].orderStatus=status;saveOrders(orders);toast(status==="done"?"Done!":status==="paused"?"Paused":"Restored");}
+  var t=btn.closest(".tab-content").id;
+  if(t==="tab-home")renderHome();else if(t==="tab-all")renderAll();else renderHistory();
+}
+
+/* EXTRACT */
+var KL={"job id":"job id","jobid":"job id","exchange / grid":"exchange / grid","grid":"grid","bsn":"bsn","bsn.":"bsn","service number":"service number","service #":"service number","appointment date":"appointment date","appointment time":"appointment time","status":"status","pid desc":"pid desc","pid":"pid desc","a end address":"a end address","address":"a end address","address showmap":"a end address","contact name":"contact name","contact no.":"contact no.","contact no":"contact no.","contact mobile":"contact mobile"};
 
 function extractEnglish(text){
-    var fields={}, lines=text.split('\n'), i=0;
-    while(i<lines.length){
-        var line=lines[i].trim();
-        if(!line){i++;continue;}
-        var m=line.match(/^([A-Za-z][A-Za-z \/()#&]+?)\s*[:\uff1a]\s*(.*)/);
-        if(m && m[2].trim()){
-            var k=m[1].trim().toLowerCase();
-            if(knownLabels[k]) fields[knownLabels[k]]=m[2].trim();
-            i++;continue;
-        }
-        var lk=line.toLowerCase();
-        if(knownLabels[lk] && !fields[knownLabels[lk]]){
-            var j=i+1;
-            while(j<lines.length && !lines[j].trim()) j++;
-            if(j<lines.length){
-                var nxt=lines[j].trim();
-                if(!knownLabels[nxt.toLowerCase()]){ fields[knownLabels[lk]]=nxt; i=j; }
-            }
-        }
-        i++;
+  var fields={},lines=text.split("\n"),i=0;
+  while(i<lines.length){
+    var line=lines[i].trim();
+    if(!line){i++;continue;}
+    var m=line.match(/^([A-Za-z][A-Za-z \/()#&]+?)\s*[:\uff1a]\s*(.*)/);
+    if(m&&m[2].trim()){var k=m[1].trim().toLowerCase();if(KL[k])fields[KL[k]]=m[2].trim();i++;continue;}
+    var lk=line.toLowerCase();
+    if(KL[lk]&&!fields[KL[lk]]){
+      var j=i+1;while(j<lines.length&&!lines[j].trim())j++;
+      if(j<lines.length){var nxt=lines[j].trim();if(!KL[nxt.toLowerCase()]){fields[KL[lk]]=nxt;i=j;}}
     }
-    var cName=fields['contact name']||'';
-    var cNo=fields['contact no.']||'';
-    var cMob=fields['contact mobile']||'';
-    if((!cNo||!/\d{4}/.test(cNo)) && cMob && /\d{4}/.test(cMob)) cNo=cMob;
-    if(cName) cName=cName.replace(/\s*(?:Contact(?:\s+(?:Mobile|No\.?|Number|Tel|Phone))?)$/i,'').trim();
-    if(cName) cName=cName.replace(/\s*(?:Mobile|No\.?|Number|Tel|Phone)$/i,'').trim();
-
-    return {
-        jobId:fields['job id']||null, grid:fields['exchange / grid']||null,
-        serviceNumber:fields['service number']||null, bsn:fields['bsn']||null,
-        address:fields['a end address']||null,
-        appointmentDate:fields['appointment date']||null, time:fields['appointment time']||null,
-        contact:cName||null, phone:cNo||null,
-        status:fields['status']||null, pidDesc:fields['pid desc']||null
-    };
+    i++;
+  }
+  var cn=fields["contact name"]||"";var cno=fields["contact no."]||"";var cm=fields["contact mobile"]||"";
+  if((!cno||!/\d{4}/.test(cno))&&cm&&/\d{4}/.test(cm))cno=cm;
+  if(cn)cn=cn.replace(/\s*(?:Contact(?:\s+(?:Mobile|No\.?|Number|Tel|Phone))?)$/i,"").trim();
+  if(cn)cn=cn.replace(/\s*(?:Mobile|No\.?|Number|Tel|Phone)$/i,"").trim();
+  return{jobId:fields["job id"]||null,grid:fields["exchange / grid"]||fields["grid"]||null,serviceNumber:fields["service number"]||null,bsn:fields["bsn"]||null,address:fields["a end address"]||null,appointmentDate:fields["appointment date"]||null,time:fields["appointment time"]||null,contact:cn||null,phone:cno||null,status:fields["status"]||null,pidDesc:fields["pid desc"]||null};
 }
 
 function doExtract(){
-    var text=document.getElementById('inputText').value.trim();
-    if(!text){showToast('Please paste work order');return;}
-    var data=extractEnglish(text);
-    if(!data.jobId && !data.serviceNumber && !data.address){showToast('Cannot extract data');return;}
-    var box=document.getElementById('resultBox');
-    box.style.display='block';
-    var items=[
-        ['Job ID',data.jobId],['Grid',data.grid],['Service #',data.serviceNumber],['BSN',data.bsn],
-        ['Address',data.address],['Date',data.appointmentDate],['Time',data.time],
-        ['Contact',data.contact],['Phone',data.phone],['Status',data.status],['PID',data.pidDesc]
-    ];
-    var html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><strong>Extract Result</strong><button onclick="saveResult()" style="padding:6px 16px;border:none;border-radius:8px;background:#667eea;color:#fff;font-weight:700;cursor:pointer;font-size:13px">Save</button></div>';
-    items.forEach(function(it){
-        html+='<div class="result-item"><span class="result-label">'+it[0]+'</span><span class="result-value">'+escapeHtml(it[1]||'(N/A)')+'</span></div>';
-    });
-    box.innerHTML=html;
-    box.dataset.data=JSON.stringify(data);
+  var text=document.getElementById("inputText").value.trim();
+  if(!text){toast("Paste work order first");return;}
+  var data=extractEnglish(text);
+  if(!data.jobId&&!data.serviceNumber&&!data.address){toast("Cannot extract");return;}
+  var box=document.getElementById("resultBox");box.style.display="block";
+  var items=[["Job ID",data.jobId],["Grid",data.grid],["Service #",data.serviceNumber],["BSN",data.bsn],["Address",data.address],["Date",data.appointmentDate],["Time",data.time],["Contact",data.contact],["Phone",data.phone],["Status",data.status],["PID",data.pidDesc]];
+  var h="<div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:6px\"><b>Result</b><button onclick=\"saveResult()\" style=\"padding:5px 14px;border:none;border-radius:8px;background:#667eea;color:#fff;font-weight:700;cursor:pointer;font-size:12px\">Save</button></div>";
+  items.forEach(function(it){h+="<div class=\"ri\"><span class=\"rl\">"+it[0]+"</span><span class=\"rv\">"+esc(it[1]||"(N/A)")+"</span></div>";});
+  box.innerHTML=h;box.dataset.data=JSON.stringify(data);
 }
 
 function saveResult(){
-    var box=document.getElementById('resultBox');
-    var data=JSON.parse(box.dataset.data);
-    if(!data) return;
-    var orders=getOrders();
-    var dup=orders.some(function(o){return o.jobId===data.jobId&&o.serviceNumber===data.serviceNumber&&o.appointmentDate===data.appointmentDate;});
-    if(dup){showToast('Already saved');return;}
-    data.orderStatus='active';
-    data.fare='';
-    orders.push(data);
-    saveOrders(orders);
-    showToast('Saved!');
-    if(data.appointmentDate){ selectedDate=data.appointmentDate; }
-    switchTab('home');
+  var box=document.getElementById("resultBox");var data=JSON.parse(box.dataset.data);if(!data)return;
+  var orders=getOrders();
+  if(orders.some(function(o){return o.jobId===data.jobId&&o.serviceNumber===data.serviceNumber&&o.appointmentDate===data.appointmentDate;})){toast("Already saved");return;}
+  data.orderStatus="active";data.fare="";orders.push(data);saveOrders(orders);toast("Saved!");switchTab("home");
 }
 
-function clearInput(){ document.getElementById('inputText').value=''; document.getElementById('resultBox').style.display='none'; }
-
-function showToast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},2000); }
+function clearInput(){document.getElementById("inputText").value="";document.getElementById("resultBox").style.display="none";}
+function toast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},2000);}
 
 renderHome();
 </script>
