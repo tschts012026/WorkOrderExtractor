@@ -160,8 +160,8 @@ function cardInner(o,full){
   var h="<div class=\"ot\"><div class=\"oid\">"+esc(o.jobId||"N/A")+"</div><span class=\"ost "+sc+"\">"+st+"</span></div>";
   h+="<div class=\"og\">";
   h+=fld("Grid",o.grid)+fld("Svc#",o.serviceNumber)+fld("BSN",o.bsn);
-  if(full){h+=fld("Date",o.appointmentDate);}
-  h+=fld("Time",o.time)+fld("Status",o.status)+fld("Contact",o.contact)+fld("Phone",o.phone);
+  h+=fld("Date",o.appointmentDate);
+  if(full){h+=fld("Time",o.time);}
   h+="</div>";
   if(o.address)h+="<div class=\"oaddr\">"+esc(o.address)+"</div>";
   if(o.pidDesc)h+="<div class=\"opid\">"+esc(o.pidDesc)+"</div>";
@@ -349,3 +349,4 @@ if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch
 </script>
 </body>
 </html>
+
