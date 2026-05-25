@@ -218,10 +218,10 @@
             const tmr = new Date(today); tmr.setDate(tmr.getDate()+1);
             const tmrStr = formatDateObj(tmr);
 
-            // Build chip buttons: Today, Tomorrow, then other dates
+            // Always show today + tomorrow + any dates with orders
             let html = '';
-            html += `<button class="date-chip today ${selectedDate === todayStr ? 'active' : ''}" onclick="selectDate('${todayStr}')">🔴 今日</button>`;
-            html += `<button class="date-chip tomorrow ${selectedDate === tmrStr ? 'active' : ''}" onclick="selectDate('${tmrStr}')">🟠 明日</button>`;
+            html += `<button class="date-chip today ${selectedDate === todayStr ? 'active' : ''}" onclick="selectDate('${todayStr}')">🔴 今日 ${todayStr}</button>`;
+            html += `<button class="date-chip tomorrow ${selectedDate === tmrStr ? 'active' : ''}" onclick="selectDate('${tmrStr}')">🟠 明日 ${tmrStr}</button>`;
 
             // Other dates sorted
             const otherDates = [...dateSet].filter(d => d !== todayStr && d !== tmrStr).sort().reverse();
@@ -244,12 +244,16 @@
 
         function renderDayOrders() {
             const saved = JSON.parse(localStorage.getItem('wfm_orders') || '[]');
-            const displayDate = selectedDate || formatDateObj(new Date());
+            const todayStr = formatDateObj(new Date());
+            if (!selectedDate) selectedDate = todayStr;
+            const displayDate = selectedDate;
             const orders = saved.filter(s => s.appointmentDate === displayDate);
 
             const wd = getWeekday(displayDate);
+            const isToday = displayDate === todayStr;
             document.getElementById('dateSummary').innerHTML =
-                `📅 ${displayDate} ${wd}　—　${orders.length} 單工作`;
+                `📅 ${displayDate} ${wd}${isToday ? ' 🔴今日' : ''}　—　${orders.length} 單工作`;
+
 
             const container = document.getElementById('dayOrders');
             if (!orders.length) {
@@ -433,7 +437,10 @@
 
         // ===== UTILS =====
         function formatDateObj(d) {
-            return d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
+            const y = d.getFullYear();
+            const m = String(d.getMonth()+1).padStart(2,'0');
+            const day = String(d.getDate()).padStart(2,'0');
+            return y + '/' + m + '/' + day;
         }
         function getWeekday(dateStr) {
             try {
