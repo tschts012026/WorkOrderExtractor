@@ -551,33 +551,52 @@ function saveOrders(orders) { localStorage.setItem('wfm_orders', JSON.stringify(
         function extractEnglish(text) {
             var fields = {};
             var lines = text.split('\n');
-            // Pass 1: "Label: Value" on same line
-            for (var i = 0; i < lines.length; i++) {
+            var i = 0;
+            while (i < lines.length) {
                 var line = lines[i].trim();
+                if (!line) { i++; continue; }
+                // Try "Label: Value" on same line
                 var m = line.match(/^([A-Za-z][A-Za-z \/\(\)]+?)\s*[:\uff1a]\s*(.*)/);
                 if (m && m[1]) {
                     var k = m[1].trim().toLowerCase();
                     var v = m[2].trim();
                     if (v) fields[k] = v;
-                }
-            }
-            // Pass 2: "Label" alone on a line, value on next line
-            for (var i = 0; i < lines.length; i++) {
-                var line = lines[i].trim();
-                if (!line) continue;
-                if (line.match(/^([A-Za-z][A-Za-z \/\(\)]+?)\s*[:\uff1a]\s*(.*)/)) continue; // already handled
-                var labelMatch = line.match(/^([A-Za-z][A-Za-z \/\(\)]+)$/);
-                if (labelMatch && i + 1 < lines.length) {
-                    var k = labelMatch[1].trim().toLowerCase();
-                    if (fields[k]) continue; // already have it from pass 1
-                    var nxt = lines[i+1].trim();
-                    if (nxt && !nxt.match(/^[A-Za-z][A-Za-z \/\(\)]+$/)) {
-                        fields[k] = nxt;
-                        i++;
+                    else {
+                        // Value might be on next line(s)
+                        var j = i + 1;
+                        while (j < lines.length && !lines[j].trim()) j++;
+                        if (j < lines.length) {
+                            var nv = lines[j].trim();
+                            // Don't consume if it looks like a new label
+                            if (!nv.match(/^[A-Za-z][A-Za-z \/\(\)]+?\s*[:\uff1a]/)) {
+                                fields[k] = nv;
+                                i = j;
+                            }
+                        }
                     }
+                    i++;
+                    continue;
                 }
+                // Standalone label: check if next line is value
+                if (/^[A-Za-z][A-Za-z \/\(\)]+$/.test(line)) {
+                    var k2 = line.trim().toLowerCase();
+                    if (!fields[k2]) {
+                        var j2 = i + 1;
+                        while (j2 < lines.length && !lines[j2].trim()) j2++;
+                        if (j2 < lines.length) {
+                            var nv2 = lines[j2].trim();
+                            if (!nv2.match(/^[A-Za-z][A-Za-z \/\(\)]+$/)) {
+                                fields[k2] = nv2;
+                                i = j2;
+                            }
+                        }
+                    }
+                    i++;
+                    continue;
+                }
+                i++;
             }
-            // Build result - use original labels
+            // Build result
             var jobId = fields['job id'] || null;
             var grid  = fields['exchange / grid'] || fields['grid'] || null;
             var svc   = fields['service number'] || null;
@@ -587,7 +606,7 @@ function saveOrders(orders) { localStorage.setItem('wfm_orders', JSON.stringify(
             var status= fields['status'] || null;
             var pid   = fields['pid desc'] || fields['pid'] || null;
             var cName = fields['contact name'] || null;
-            var cNo   = fields['contact no.'] || fields['contact no'] || null;
+            var cNo   = fields['contact no.'] || fields['contact no'] || fields['contact no'] || null;
             var contactDisplay = '';
             if (cName && cNo) contactDisplay = cName + ' ' + cNo;
             else if (cName) contactDisplay = cName;
