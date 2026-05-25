@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WFM 工單提取器 v3</title>
+    <title>WFM 工單提取器 v5</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -17,41 +17,18 @@
         }
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white; padding: 30px; text-align: center;
+            color: white; padding: 20px 30px; text-align: center;
         }
-        .header h1 { font-size: 28px; margin-bottom: 10px; }
-        .header p { opacity: 0.9; font-size: 14px; }
-        .content { padding: 30px; }
-        .input-section { margin-bottom: 20px; }
-        .input-section label { display: block; margin-bottom: 10px; font-weight: 600; color: #333; }
-        textarea {
-            width: 100%; min-height: 180px; padding: 15px;
-            border: 2px solid #e0e0e0; border-radius: 10px;
-            font-size: 16px; font-family: inherit; resize: vertical;
-        }
-        textarea:focus { outline: none; border-color: #667eea; }
-        .button-group { display: flex; gap: 10px; margin-bottom: 20px; }
-        button {
-            flex: 1; padding: 15px; border: none; border-radius: 10px;
-            font-size: 16px; font-weight: 600; cursor: pointer;
-        }
-        button:active { transform: scale(0.98); }
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white; box-shadow: 0 4px 15px rgba(102,126,234,0.4);
-        }
-        .btn-secondary { background: #f5f5f5; color: #333; }
-        .btn-save {
-            background: #27ae60; color: white;
-            box-shadow: 0 4px 15px rgba(39,174,96,0.4);
-        }
+        .header h1 { font-size: 24px; margin-bottom: 5px; }
+        .header p { opacity: 0.9; font-size: 13px; }
+        .content { padding: 20px; }
         .tab-bar {
-            display: flex; margin-bottom: 20px; background: #f5f5f5;
+            display: flex; margin-bottom: 15px; background: #f5f5f5;
             border-radius: 10px; padding: 4px;
         }
         .tab-bar button {
-            flex: 1; padding: 12px; border: none; border-radius: 8px;
-            font-size: 15px; font-weight: 600; cursor: pointer;
+            flex: 1; padding: 10px; border: none; border-radius: 8px;
+            font-size: 14px; font-weight: 600; cursor: pointer;
             background: transparent; color: #666; transition: all 0.3s;
         }
         .tab-bar button.active {
@@ -60,65 +37,101 @@
         }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+
+        /* Date picker bar */
+        .date-bar {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 15px; flex-wrap: wrap;
+        }
+        .date-bar input[type="date"] {
+            padding: 8px 12px; border: 2px solid #e0e0e0; border-radius: 8px;
+            font-size: 15px; flex: 1; min-width: 140px;
+        }
+        .date-bar input[type="date"]:focus { outline: none; border-color: #667eea; }
+        .date-chip {
+            padding: 6px 14px; border-radius: 20px; font-size: 13px;
+            font-weight: 600; cursor: pointer; border: 2px solid #e0e0e0;
+            background: white; color: #666; transition: all 0.2s; white-space: nowrap;
+        }
+        .date-chip:hover { border-color: #667eea; color: #667eea; }
+        .date-chip.active { background: #667eea; color: white; border-color: #667eea; }
+        .date-chip.today { border-color: #e74c3c; color: #e74c3c; }
+        .date-chip.today.active { background: #e74c3c; color: white; border-color: #e74c3c; }
+        .date-chip.tomorrow { border-color: #f39c12; color: #f39c12; }
+        .date-chip.tomorrow.active { background: #f39c12; color: white; border-color: #f39c12; }
+        .date-summary {
+            background: #f0f4ff; border-radius: 10px; padding: 10px 15px;
+            margin-bottom: 12px; font-size: 14px; color: #667eea; font-weight: 600;
+        }
+
+        /* Work order cards on main page */
+        .order-card {
+            background: #f9f9f9; border-radius: 12px; padding: 15px;
+            margin-bottom: 10px; border-left: 4px solid #667eea;
+        }
+        .order-card .order-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 8px;
+        }
+        .order-card .order-id { font-weight: 700; color: #333; font-size: 16px; }
+        .order-card .order-status {
+            background: #667eea; color: white; padding: 3px 10px;
+            border-radius: 12px; font-size: 12px; font-weight: 600;
+        }
+        .order-card .order-body { font-size: 13px; color: #555; line-height: 1.8; }
+        .order-card .order-body span { display: inline-block; margin-right: 8px; }
+        .order-card .phone-link { color: #667eea; text-decoration: none; font-weight: 600; }
+        .order-card .delete-btn {
+            background: none; border: none; color: #ccc; font-size: 16px;
+            cursor: pointer; padding: 4px;
+        }
+        .order-card .delete-btn:hover { color: #e74c3c; }
+
+        /* Extract tab */
+        .input-section { margin-bottom: 15px; }
+        .input-section label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px; }
+        textarea {
+            width: 100%; min-height: 150px; padding: 12px;
+            border: 2px solid #e0e0e0; border-radius: 10px;
+            font-size: 15px; font-family: inherit; resize: vertical;
+        }
+        textarea:focus { outline: none; border-color: #667eea; }
+        .button-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        .button-group button {
+            flex: 1; padding: 12px; border: none; border-radius: 10px;
+            font-size: 15px; font-weight: 600; cursor: pointer;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-secondary { background: #f5f5f5; color: #333; }
         .result-section { display: none; }
-        .result-section.show { display: block; animation: fadeIn 0.5s; }
+        .result-section.show { display: block; animation: fadeIn 0.4s; }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .result-card {
-            background: #f9f9f9; border-radius: 10px; padding: 20px; margin-bottom: 20px;
+            background: #f9f9f9; border-radius: 10px; padding: 15px; margin-bottom: 15px;
         }
-        .result-card h3 { color: #667eea; margin-bottom: 15px; font-size: 18px; }
-        .field {
-            margin-bottom: 12px; padding-bottom: 12px;
-            border-bottom: 1px solid #e0e0e0;
-        }
+        .result-card h3 { color: #667eea; margin-bottom: 12px; font-size: 16px; }
+        .field { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #e0e0e0; }
         .field:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .field-label { font-weight: 600; color: #666; font-size: 14px; margin-bottom: 4px; }
-        .field-value { color: #333; font-size: 16px; word-break: break-word; }
+        .field-label { font-weight: 600; color: #666; font-size: 13px; margin-bottom: 3px; }
+        .field-value { color: #333; font-size: 15px; word-break: break-word; }
         .field-value.empty { color: #999; font-style: italic; }
-        .action-row { display: flex; gap: 10px; margin-top: 10px; }
+        .action-row { display: flex; gap: 8px; margin-top: 10px; }
         .action-btn {
             padding: 8px 15px; border: none; border-radius: 5px;
             font-size: 14px; cursor: pointer; font-weight: 600;
         }
-        .saved-item {
-            background: #f0f4ff; border-radius: 10px; padding: 15px;
-            margin-bottom: 10px; position: relative;
-        }
-        .saved-item .saved-title { font-weight: 600; color: #333; margin-bottom: 8px; }
-        .saved-item .saved-detail { font-size: 13px; color: #666; line-height: 1.8; }
-        .saved-item .delete-btn {
-            position: absolute; top: 10px; right: 10px;
-            background: #e74c3c; color: white; border: none;
-            border-radius: 50%; width: 28px; height: 28px;
-            font-size: 14px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .date-group-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white; padding: 10px 15px; border-radius: 8px;
-            font-weight: 600; font-size: 15px; margin: 15px 0 10px 0;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .date-group-header:first-child { margin-top: 0; }
-        .date-group-count {
-            background: rgba(255,255,255,0.3); border-radius: 12px;
-            padding: 2px 10px; font-size: 13px;
-        }
-        .today-badge {
-            background: #e74c3c; color: white; border-radius: 4px;
-            padding: 2px 8px; font-size: 12px; margin-left: 8px;
-        }
-        .tomorrow-badge {
-            background: #f39c12; color: white; border-radius: 4px;
-            padding: 2px 8px; font-size: 12px; margin-left: 8px;
-        }
+        .empty-msg { color: #999; text-align: center; padding: 30px; font-size: 15px; }
+
         .toast {
             position: fixed; bottom: 30px; left: 50%;
             transform: translateX(-50%) translateY(100px);
-            background: #333; color: white; padding: 15px 30px;
+            background: #333; color: white; padding: 12px 25px;
             border-radius: 10px; font-size: 14px; opacity: 0;
             transition: all 0.3s; z-index: 1000;
         }
@@ -128,19 +141,28 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📋 WFM 工單提取器</h1>
-            <p>貼入工單 → 提取 → 儲存</p>
+            <h1>📋 WFM 工單管家</h1>
+            <p>貼入 → 提取 → 儲存 → 按日查看</p>
         </div>
         <div class="content">
             <div class="tab-bar">
-                <button class="active" onclick="switchTab('extract', this)">📝 提取</button>
-                <button onclick="switchTab('saved', this)">💾 已儲存 <span id="savedCount">0</span></button>
+                <button class="active" onclick="switchTab('home', this)">🏠 今日工作</button>
+                <button onclick="switchTab('extract', this)">📝 提取</button>
+                <button onclick="switchTab('alldates', this)">📅 所有日期</button>
             </div>
 
-            <div id="tab-extract" class="tab-content active">
+            <!-- HOME TAB: date picker + day's orders -->
+            <div id="tab-home" class="tab-content active">
+                <div class="date-bar" id="dateBar"></div>
+                <div class="date-summary" id="dateSummary"></div>
+                <div id="dayOrders"></div>
+            </div>
+
+            <!-- EXTRACT TAB -->
+            <div id="tab-extract" class="tab-content">
                 <div class="input-section">
                     <label>📝 貼入工單內容：</label>
-                    <textarea id="inputText" placeholder="貼入工單 raw text...&#10;&#10;例如：&#10;Job ID: 7766370&#10;Grid: FTH&#10;Service Number: 063497&#10;Address: FLAT 605, 6/F, SUNBEAM PLAZA...&#10;Contact: Ms Kwok 27450670"></textarea>
+                    <textarea id="inputText" placeholder="貼入工單 raw text...&#10;&#10;例如：&#10;Job ID: 7766370&#10;Grid: FTH&#10;Service Number: 063497&#10;Contact: Ms Kwok 27450670"></textarea>
                 </div>
                 <div class="button-group">
                     <button class="btn-primary" onclick="extractData()">🚀 提取資料</button>
@@ -158,8 +180,9 @@
                 </div>
             </div>
 
-            <div id="tab-saved" class="tab-content">
-                <div id="savedList"></div>
+            <!-- ALL DATES TAB -->
+            <div id="tab-alldates" class="tab-content">
+                <div id="allDatesList"></div>
             </div>
         </div>
     </div>
@@ -167,15 +190,128 @@
 
     <script>
         let lastResult = null;
+        let selectedDate = null; // null = today
 
         function switchTab(tab, btn) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-bar button').forEach(el => el.classList.remove('active'));
             document.getElementById('tab-' + tab).classList.add('active');
             btn.classList.add('active');
-            if (tab === 'saved') renderSavedList();
+            if (tab === 'home') renderHome();
+            if (tab === 'alldates') renderAllDates();
         }
 
+        // ===== HOME TAB =====
+        function renderHome() {
+            renderDateBar();
+            renderDayOrders();
+        }
+
+        function renderDateBar() {
+            const saved = JSON.parse(localStorage.getItem('wfm_orders') || '[]');
+            // Collect all dates
+            const dateSet = new Set();
+            saved.forEach(s => { if (s.appointmentDate) dateSet.add(s.appointmentDate); });
+
+            const today = new Date();
+            const todayStr = formatDateObj(today);
+            const tmr = new Date(today); tmr.setDate(tmr.getDate()+1);
+            const tmrStr = formatDateObj(tmr);
+
+            // Build chip buttons: Today, Tomorrow, then other dates
+            let html = '';
+            html += `<button class="date-chip today ${selectedDate === todayStr ? 'active' : ''}" onclick="selectDate('${todayStr}')">🔴 今日</button>`;
+            html += `<button class="date-chip tomorrow ${selectedDate === tmrStr ? 'active' : ''}" onclick="selectDate('${tmrStr}')">🟠 明日</button>`;
+
+            // Other dates sorted
+            const otherDates = [...dateSet].filter(d => d !== todayStr && d !== tmrStr).sort().reverse();
+            otherDates.forEach(d => {
+                const wd = getWeekday(d);
+                const count = saved.filter(s => s.appointmentDate === d).length;
+                html += `<button class="date-chip ${selectedDate === d ? 'active' : ''}" onclick="selectDate('${d}')">${d} ${wd} (${count})</button>`;
+            });
+
+            // If no date selected, default to today
+            if (!selectedDate && dateSet.size > 0) selectedDate = todayStr;
+
+            document.getElementById('dateBar').innerHTML = html;
+        }
+
+        function selectDate(dateStr) {
+            selectedDate = dateStr;
+            renderHome();
+        }
+
+        function renderDayOrders() {
+            const saved = JSON.parse(localStorage.getItem('wfm_orders') || '[]');
+            const displayDate = selectedDate || formatDateObj(new Date());
+            const orders = saved.filter(s => s.appointmentDate === displayDate);
+
+            const wd = getWeekday(displayDate);
+            document.getElementById('dateSummary').innerHTML =
+                `📅 ${displayDate} ${wd}　—　${orders.length} 單工作`;
+
+            const container = document.getElementById('dayOrders');
+            if (!orders.length) {
+                container.innerHTML = '<div class="empty-msg">呢日冇工單 🎉</div>';
+                return;
+            }
+
+            container.innerHTML = orders.map((s, i) => `
+                <div class="order-card">
+                    <div class="order-header">
+                        <span class="order-id">${i+1}. #${s.jobId}</span>
+                        <span>
+                            <span class="order-status">${s.status || ''}</span>
+                            <button class="delete-btn" onclick="deleteSaved('${s.jobId}')">🗑️</button>
+                        </span>
+                    </div>
+                    <div class="order-body">
+                        <div>📍 ${s.grid || ''} | 🔧 ${s.serviceNumber || ''}</div>
+                        <div>🏠 ${s.address || ''}</div>
+                        <div>⏰ ${s.time || ''}</div>
+                        <div>👤 ${s.contact || ''} ${s.phone ? `<a class="phone-link" href="tel:${s.phone}">📞 ${s.phone}</a>` : ''}</div>
+                        <div>📝 ${s.pidDesc || ''}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ===== ALL DATES TAB =====
+        function renderAllDates() {
+            const saved = JSON.parse(localStorage.getItem('wfm_orders') || '[]');
+            if (!saved.length) {
+                document.getElementById('allDatesList').innerHTML = '<div class="empty-msg">暫無已儲存的工單</div>';
+                return;
+            }
+            const groups = {};
+            saved.forEach(s => {
+                const k = s.appointmentDate || '未指定日期';
+                if (!groups[k]) groups[k] = [];
+                groups[k].push(s);
+            });
+            const sortedKeys = Object.keys(groups).sort((a, b) => {
+                if (a === '未指定日期') return 1;
+                if (b === '未指定日期') return -1;
+                return b.localeCompare(a);
+            });
+            const todayStr = formatDateObj(new Date());
+            const tmr = new Date(); tmr.setDate(tmr.getDate()+1);
+            const tmrStr = formatDateObj(tmr);
+
+            let html = '';
+            sortedKeys.forEach(dateKey => {
+                const orders = groups[dateKey];
+                let badge = '';
+                if (dateKey === todayStr) badge = ' 🔴今日';
+                else if (dateKey === tmrStr) badge = ' 🟠明日';
+                const wd = dateKey !== '未指定日期' ? getWeekday(dateKey) : '';
+                html += `<div class="date-summary" style="cursor:pointer;" onclick="selectedDate='${dateKey}';switchTab('home',document.querySelectorAll('.tab-bar button')[0])">📅 ${dateKey} ${wd}${badge} — ${orders.length} 單（撳入查看）</div>`;
+            });
+            document.getElementById('allDatesList').innerHTML = html;
+        }
+
+        // ===== EXTRACT LOGIC =====
         function extractData() {
             const input = document.getElementById('inputText').value.trim();
             if (!input) { showToast('⚠️ 請先貼入工單內容'); return; }
@@ -203,7 +339,6 @@
                 const m = line.match(/^\s*([A-Za-z][A-Za-z ]+?)\s*[:]\s*(.*)/);
                 if (m) { const k = m[1].trim().toLowerCase(); const v = m[2].trim(); if (v) fields[k] = v; }
             });
-
             let contactName = null, contactPhone = null;
             const contactRaw = fields['contact'] || null;
             if (contactRaw) {
@@ -219,7 +354,6 @@
                 const pm3 = text.match(/(?:Tel|Phone)[:\s]*(\d{8})/i);
                 if (pm3) contactPhone = pm3[1];
             }
-
             return {
                 jobId: fields['job id'] || null,
                 grid: fields['grid'] || null,
@@ -239,13 +373,11 @@
             for (const p of ps) { const m = text.match(p); if (m && m[1]) return m[1].trim(); }
             return null;
         }
-
         function extractPhone(text) {
             const ps = [/電話[：:]\s*([0-9\-\s]{8,15})/i, /([0-9]{4}[-\s]?[0-9]{4})/, /([0-9]{8})/];
             for (const p of ps) { const m = text.match(p); if (m && m[1]) return m[1].trim(); }
             return null;
         }
-
         function extractAddress(text) {
             const ps = [/地址[：:]\s*([^\n]{5,100})/i, /(香港[^\n]{5,100})/i, /(九龍[^\n]{5,100})/i, /(新界[^\n]{5,100})/i];
             for (const p of ps) { const m = text.match(p); if (m && m[1]) return m[1].trim(); }
@@ -274,7 +406,8 @@
             lastResult.savedAt = new Date().toLocaleString('zh-TW');
             saved.unshift(lastResult);
             localStorage.setItem('wfm_orders', JSON.stringify(saved));
-            updateSavedCount();
+            // Auto select the date of the saved order
+            if (lastResult.appointmentDate) selectedDate = lastResult.appointmentDate;
             showToast('💾 已儲存！');
         }
 
@@ -282,76 +415,8 @@
             let saved = JSON.parse(localStorage.getItem('wfm_orders') || '[]');
             saved = saved.filter(s => s.jobId !== jobId);
             localStorage.setItem('wfm_orders', JSON.stringify(saved));
-            updateSavedCount();
-            renderSavedList();
+            renderHome();
             showToast('🗑️ 已刪除');
-        }
-
-        function renderSavedList() {
-            const saved = JSON.parse(localStorage.getItem('wfm_orders') || '[]');
-            const list = document.getElementById('savedList');
-            if (!saved.length) { list.innerHTML = '<div class="empty-msg">暫無已儲存的工單</div>'; return; }
-            
-            // Group by appointment date
-            const groups = {};
-            saved.forEach(s => {
-                const dateKey = s.appointmentDate || '未指定日期';
-                if (!groups[dateKey]) groups[dateKey] = [];
-                groups[dateKey].push(s);
-            });
-            
-            // Sort date keys (newest first)
-            const sortedKeys = Object.keys(groups).sort((a, b) => {
-                if (a === '未指定日期') return 1;
-                if (b === '未指定日期') return -1;
-                return b.localeCompare(a); // YYYY/MM/DD format sorts well
-            });
-            
-            // Today & tomorrow
-            const today = new Date();
-            const todayStr = today.getFullYear() + '/' + String(today.getMonth()+1).padStart(2,'0') + '/' + String(today.getDate()).padStart(2,'0');
-            const tmr = new Date(today); tmr.setDate(tmr.getDate()+1);
-            const tmrStr = tmr.getFullYear() + '/' + String(tmr.getMonth()+1).padStart(2,'0') + '/' + String(tmr.getDate()).padStart(2,'0');
-            
-            let html = '';
-            sortedKeys.forEach(dateKey => {
-                const orders = groups[dateKey];
-                let badge = '';
-                if (dateKey === todayStr) badge = '<span class="today-badge">今日</span>';
-                else if (dateKey === tmrStr) badge = '<span class="tomorrow-badge">明日</span>';
-                
-                const weekday = dateKey !== '未指定日期' ? getWeekday(dateKey) : '';
-                
-                html += `<div class="date-group-header">📅 ${dateKey} ${weekday}${badge} <span class="date-group-count">${orders.length} 單</span></div>`;
-                orders.forEach(s => {
-                    html += `
-                    <div class="saved-item">
-                        <button class="delete-btn" onclick="deleteSaved('${s.jobId}')">✕</button>
-                        <div class="saved-title">#${s.jobId} — ${s.status || ''}</div>
-                        <div class="saved-detail">
-                            📍 ${s.grid || ''} | 🔧 ${s.serviceNumber || ''}<br>
-                            🏠 ${s.address || ''}<br>
-                            ⏰ ${s.time || ''}<br>
-                            👤 ${s.contact || ''} 📞 ${s.phone || ''}<br>
-                            📝 ${s.pidDesc || ''}
-                        </div>
-                    </div>`;
-                });
-            });
-            list.innerHTML = html;
-        }
-        
-        function getWeekday(dateStr) {
-            try {
-                const d = new Date(dateStr.replace(/\//g, '-'));
-                const days = ['日','一','二','三','四','五','六'];
-                return '(' + days[d.getDay()] + ')';
-            } catch(e) { return ''; }
-        }
-
-        function updateSavedCount() {
-            const saved = JSON.parse(localStorage.getItem('wfm_orders') || '[]');
-            document.getElementById('savedCount').textContent = saved.length;
         }
 
         function clearAll() {
@@ -366,6 +431,18 @@
             navigator.clipboard.writeText(text).then(() => showToast('📋 已複製！')).catch(() => showToast('❌ 複製失敗'));
         }
 
+        // ===== UTILS =====
+        function formatDateObj(d) {
+            return d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
+        }
+        function getWeekday(dateStr) {
+            try {
+                const d = new Date(dateStr.replace(/\//g, '-'));
+                const days = ['日','一','二','三','四','五','六'];
+                return '(' + days[d.getDay()] + ')';
+            } catch(e) { return ''; }
+        }
+
         function showToast(message) {
             const toast = document.getElementById('toast');
             toast.textContent = message; toast.classList.add('show');
@@ -373,7 +450,8 @@
         }
 
         // Init
-        updateSavedCount();
+        selectedDate = formatDateObj(new Date());
+        renderHome();
     </script>
 </body>
 </html>
