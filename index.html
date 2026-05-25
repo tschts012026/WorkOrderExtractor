@@ -246,7 +246,7 @@ function extractEnglish(text){
   while(i<lines.length){
     var line=lines[i].trim();
     if(!line){i++;continue;}
-    var m=line.match(/^([A-Za-z][A-Za-z \/()#&]+?)\s*[:\uff1a]\s*(.*)/);
+    var m=line.match(/^([A-Za-z][A-Za-z \/()#&.]+?)\s*[:\uff1a]\s*(.*)/);
     if(m&&m[2].trim()){var k=m[1].trim().toLowerCase();if(KL[k])fields[KL[k]]=m[2].trim();i++;continue;}
     var lk=line.toLowerCase();
     if(KL[lk]&&!fields[KL[lk]]){
