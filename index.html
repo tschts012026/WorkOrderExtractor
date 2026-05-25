@@ -164,7 +164,9 @@ function cardInner(o,full){
   if(full){h+=fld("Time",o.time);}
   h+="</div>";
   if(o.address)h+="<div class=\"oaddr\">"+esc(o.address)+"</div>";
-  if(o.pidDesc)h+="<div class=\"opid\">"+esc(o.pidDesc)+"</div>";
+  h+=fld("Contact",o.contact);
+  h+=fld("Phone",o.phone);
+  h+=fld("PID Desc",o.pidDesc||o.pid);
   h+="<div class=\"oact\" data-j='"+jid+"' data-s='"+sid+"' data-d='"+did+"'>";
   h+="<div class=\"irow\"><span class=\"ol\">Fare $</span><input type=\"number\" placeholder=\"0\" value=\""+(o.fare||"")+"\" onchange=\"doSave(this)\"></div>";
   h+="<div class=\"irow\"><span class=\"ol\">Note</span><input type=\"text\" placeholder=\"Add note...\" value=\""+qs(o.note||"")+"\" onchange=\"doSave(this)\"></div>";
