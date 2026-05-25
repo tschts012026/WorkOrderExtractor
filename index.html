@@ -402,23 +402,30 @@
                         else if (gOrders[k].orderStatus === 'done') doneCount++;
                         else if (gOrders[k].orderStatus === 'paused') pausedCount++;
                     }
-                    // Date group header - clickable to go to that date in home tab
-                    html += '<div class="date-group-header" onclick="goToDate(\'' + dateKey + '\')">';
+                    // Date group header - click to expand/collapse
+                    html += '<div class="date-group-header" onclick="toggleDateGroup(\'dg-' + j + '\')">';
                     html += dateKey + ' ' + wd + (isToday ? ' 今日' : '');
                     html += ' \u2014 ' + gOrders.length + ' 單';
                     if (activeCount) html += ' | ' + activeCount + '待做';
                     if (doneCount) html += ' | ' + doneCount + '完成';
                     if (pausedCount) html += ' | ' + pausedCount + '暫停';
-                    html += '</div>';
-                    // Show all order cards under this date
+                    html += ' ▼</div>';
+                    // Order cards hidden by default, click header to show
+                    html += '<div id="dg-' + j + '" style="display:none;">';
                     for (var m = 0; m < gOrders.length; m++) {
                         html += renderOrderCard(gOrders[m], m, !gOrders[m].orderStatus || gOrders[m].orderStatus === 'active');
                     }
+                    html += '</div>';
                 }
                 document.getElementById('allDatesList').innerHTML = html;
             } catch(e) {
                 document.getElementById('allDatesList').innerHTML = '<div class="empty-msg">錯誤：' + e.message + '</div>';
             }
+        }
+
+        function toggleDateGroup(id) {
+            var el = document.getElementById(id);
+            if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
         }
 
         function goToDate(dateKey) {
