@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <link rel="manifest" href="manifest.json">
-<link rel="manifest" href="manifest.json">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WFM</title>
 <style>
@@ -286,14 +285,10 @@ function clearInput(){document.getElementById("inputText").value="";document.get
 function toast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(function(){t.classList.remove("show");},2000);}
 
 renderHome();
+
+/* PWA Service Worker */
+if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(function(e){});}
+
 </script>
-
-/* PWA Service Worker */
-if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(function(e){});}
-
-
-/* PWA Service Worker */
-if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(function(e){});}
-
 </body>
 </html>
