@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WFM 工單管家 v6.3</title>
+    <title>WFM 工單管家 v7</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -39,6 +39,49 @@
         .tab-content.active { display: block; }
 
         .date-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+        /* Date picker - Work List style */
+        .date-picker-row {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+        }
+        .date-picker-label {
+            font-size: 14px; font-weight: 700; color: #333; min-width: 42px;
+        }
+        .date-picker-select {
+            flex: 1; padding: 10px 14px; border: 2px solid #e0e0e0;
+            border-radius: 10px; font-size: 15px; font-weight: 600;
+            color: #333; background: white; cursor: pointer;
+            appearance: none; -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 12px center;
+            padding-right: 32px;
+        }
+        .date-picker-select:focus { outline: none; border-color: #667eea; }
+
+        /* Date list - Work List App style */
+        .date-list { margin-bottom: 10px; }
+        .date-list-item {
+            display: flex; align-items: center; padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0; cursor: pointer;
+            transition: background 0.15s;
+        }
+        .date-list-item:last-child { border-bottom: none; }
+        .date-list-item:hover { background: #f9f9f9; }
+        .date-list-item.selected { background: #f0f4ff; }
+        .date-radio {
+            width: 20px; height: 20px; border: 2px solid #ccc;
+            border-radius: 50%; margin-right: 12px; flex-shrink: 0;
+            position: relative; transition: all 0.15s;
+        }
+        .date-list-item.selected .date-radio {
+            border-color: #667eea;
+        }
+        .date-list-item.selected .date-radio::after {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px; height: 10px; border-radius: 50%; background: #667eea;
+        }
+        .date-text { font-size: 15px; font-weight: 600; color: #333; }
+        .date-count { margin-left: auto; font-size: 13px; color: #999; font-weight: 500; }
         .date-chip {
             padding: 5px 12px; border-radius: 20px; font-size: 13px;
             font-weight: 600; cursor: pointer; border: 2px solid #e0e0e0;
@@ -50,10 +93,6 @@
         .date-chip.today.active { background: #e74c3c; color: white; border-color: #e74c3c; }
         .date-chip.tomorrow { border-color: #f39c12; color: #f39c12; }
         .date-chip.tomorrow.active { background: #f39c12; color: white; border-color: #f39c12; }
-        .date-summary {
-            background: #f0f4ff; border-radius: 10px; padding: 8px 12px;
-            margin-bottom: 10px; font-size: 13px; color: #667eea; font-weight: 600;
-        }
         .date-group-header {
             background: #667eea; color: white; border-radius: 10px; padding: 10px 14px;
             margin-bottom: 10px; font-size: 14px; font-weight: 700; cursor: pointer;
@@ -176,7 +215,10 @@
             </div>
 
             <div id="tab-home" class="tab-content active">
-                <div class="date-bar" id="dateBar"></div>
+                <div class="date-picker-row">
+                    <span class="date-picker-label">Date:</span>
+                    <select class="date-picker-select" id="homeDateSelect" onchange="onHomeDateChange(this.value)"></select>
+                </div>
                 <div class="date-summary" id="dateSummary"></div>
                 <div id="dayOrders"></div>
                 <div id="dayHistory" class="history-section"></div>
@@ -243,9 +285,24 @@
                 return [];
             }
         }
-        function saveOrders(orders) { localStorage.setItem('wfm_orders', JSON.stringify(orders)); }
+        function getAllDates() {
+            var orders = getOrders();
+            var dates = {};
+            for (var i = 0; i < orders.length; i++) {
+                var k = orders[i].appointmentDate || '\u672a\u6307\u5b9a';
+                dates[k] = true;
+            }
+            var keys = Object.keys(dates).sort(function(a, b) { return b.localeCompare(a); });
+            var today = formatDateObj(new Date());
+            var tmrObj = new Date(); tmrObj.setDate(tmrObj.getDate() + 1);
+            var tmr = formatDateObj(tmrObj);
+            if (keys.indexOf(today) === -1) keys.unshift(today);
+            if (keys.indexOf(tmr) === -1 && tmr !== today) keys.splice(1, 0, tmr);
+            return keys;
+        }
+function saveOrders(orders) { localStorage.setItem('wfm_orders', JSON.stringify(orders)); }
 
-        function renderHome() { renderDateBar(); renderDayOrders(); }
+        function renderHome() { renderHomeDatePicker(); renderDayOrders(); }
 
         function renderDateBar() {
             var today = new Date();
@@ -370,59 +427,78 @@
             document.getElementById('historyList').innerHTML = html;
         }
 
+        // ---- ALL DATES TAB (Work List App style) ----
         function renderAllDates() {
-            try {
-                var orders = getOrders();
-                if (!orders.length) {
-                    document.getElementById('allDatesList').innerHTML = '<div class="empty-msg">暫無工單</div>';
-                    return;
+            var orders = getOrders();
+            if (!orders.length) {
+                document.getElementById('allDatesList').innerHTML = '<div class="empty-msg">\u66ab\u7121\u5de5\u55ae</div>';
+                return;
+            }
+            var groups = {};
+            for (var i = 0; i < orders.length; i++) {
+                var k = orders[i].appointmentDate || '\u672a\u6307\u5b9a';
+                if (!groups[k]) groups[k] = [];
+                groups[k].push(orders[i]);
+            }
+            var sortedKeys = Object.keys(groups).sort(function(a, b) {
+                if (a === '\u672a\u6307\u5b9a') return 1;
+                if (b === '\u672a\u6307\u5b9a') return -1;
+                return b.localeCompare(a);
+            });
+            var todayStr = formatDateObj(new Date());
+
+            var html = '<div class="date-list">';
+            for (var j = 0; j < sortedKeys.length; j++) {
+                var dk = sortedKeys[j];
+                var gOrders = groups[dk];
+                var wd = dk !== '\u672a\u6307\u5b9a' ? getWeekday(dk) : '';
+                var isToday = dk === todayStr;
+                var isSelected = selectedDate === dk;
+                var activeCount = 0, doneCount = 0, pausedCount = 0;
+                for (var k = 0; k < gOrders.length; k++) {
+                    var st = gOrders[k].orderStatus;
+                    if (!st || st === 'active') activeCount++;
+                    else if (st === 'done') doneCount++;
+                    else if (st === 'paused') pausedCount++;
                 }
-                // Group by appointment date
-                var groups = {};
-                for (var i = 0; i < orders.length; i++) {
-                    var k = orders[i].appointmentDate || '未指定日期';
-                    if (!groups[k]) groups[k] = [];
-                    groups[k].push(orders[i]);
+                html += '<div class="date-list-item' + (isSelected ? ' selected' : '') + '" onclick="selectDateFromAll(\'' + dk + '\')">';
+                html += '<div class="date-radio"></div>';
+                html += '<div class="date-text">' + dk + ' ' + wd + (isToday ? ' \u4eca\u65e5' : '') + '</div>';
+                html += '<div class="date-count">' + gOrders.length + ' \u55ae';
+                if (activeCount || doneCount || pausedCount) {
+                    html += ' &middot; ';
+                    if (activeCount) html += activeCount + '\u5f85\u505a';
+                    if (doneCount) html += doneCount + '\u5b8c\u6210';
+                    if (pausedCount) html += pausedCount + '\u66ab\u505c';
                 }
-                var sortedKeys = Object.keys(groups).sort(function(a, b) {
-                    if (a === '未指定日期') return 1;
-                    if (b === '未指定日期') return -1;
-                    return b.localeCompare(a);
-                });
-                var todayStr = formatDateObj(new Date());
-                var html = '';
-                for (var j = 0; j < sortedKeys.length; j++) {
-                    var dateKey = sortedKeys[j];
-                    var gOrders = groups[dateKey];
-                    var wd = dateKey !== '未指定日期' ? getWeekday(dateKey) : '';
-                    var isToday = dateKey === todayStr;
-                    var activeCount = 0, doneCount = 0, pausedCount = 0;
-                    for (var k = 0; k < gOrders.length; k++) {
-                        if (!gOrders[k].orderStatus || gOrders[k].orderStatus === 'active') activeCount++;
-                        else if (gOrders[k].orderStatus === 'done') doneCount++;
-                        else if (gOrders[k].orderStatus === 'paused') pausedCount++;
-                    }
-                    // Date group header - click to expand/collapse
-                    html += '<div class="date-group-header" onclick="toggleDateGroup(\'dg-' + j + '\')">';
-                    html += dateKey + ' ' + wd + (isToday ? ' 今日' : '');
-                    html += ' \u2014 ' + gOrders.length + ' 單';
-                    if (activeCount) html += ' | ' + activeCount + '待做';
-                    if (doneCount) html += ' | ' + doneCount + '完成';
-                    if (pausedCount) html += ' | ' + pausedCount + '暫停';
-                    html += ' ▼</div>';
-                    // Order cards hidden by default, click header to show
-                    html += '<div id="dg-' + j + '" style="display:none;">';
+                html += '</div></div>';
+
+                if (isSelected) {
+                    html += '<div style="padding:0 16px 8px 46px;">';
                     for (var m = 0; m < gOrders.length; m++) {
                         html += renderOrderCard(gOrders[m], m, !gOrders[m].orderStatus || gOrders[m].orderStatus === 'active');
                     }
                     html += '</div>';
                 }
-                document.getElementById('allDatesList').innerHTML = html;
-            } catch(e) {
-                document.getElementById('allDatesList').innerHTML = '<div class="empty-msg">錯誤：' + e.message + '</div>';
             }
+            html += '</div>';
+            document.getElementById('allDatesList').innerHTML = html;
         }
 
+        function selectDateFromAll(d) {
+            selectedDate = d;
+            renderAllDates();
+        }
+
+        function toggleDateGroup(id) {
+            var el = document.getElementById(id);
+            if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function goToDate(dateKey) {
+            selectedDate = dateKey;
+            switchTab('home', document.querySelectorAll('.tab-bar button')[0]);
+        }
         function toggleDateGroup(id) {
             var el = document.getElementById(id);
             if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
