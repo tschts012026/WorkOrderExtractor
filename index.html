@@ -18,11 +18,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 .tab-content{display:none;padding:16px}
 .tab-content.active{display:block}
 
-/* Date Picker */
-.date-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-.date-chip{padding:8px 16px;border-radius:20px;border:2px solid #ddd;background:#f8f8f8;font-size:13px;cursor:pointer;transition:.2s;white-space:nowrap}
-.date-chip:active,.date-chip.active{background:#667eea;color:#fff;border-color:#667eea}
-.date-select{flex:1;min-width:120px;padding:8px 12px;border-radius:20px;border:2px solid #ddd;font-size:13px;background:#f8f8f8;color:#333}
 .summary{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 .summary span{padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600}
 .s-pending{background:#fff3cd;color:#856404}
@@ -83,7 +78,6 @@ textarea{width:100%;height:150px;border:2px solid #ddd;border-radius:12px;paddin
 <button class="tab-btn" onclick="switchTab('history')">History</button>
 </div>
 <div id="tab-home" class="tab-content active">
-<div class="date-bar" id="dateBar"></div>
 <div class="summary" id="summary"></div>
 <div id="orderList"></div>
 </div>
@@ -112,14 +106,12 @@ function escapeHtml(s){ if(!s) return ''; return s.replace(/&/g,'&amp;').replace
 
 function getOrders(){ try { return JSON.parse(localStorage.getItem('wfm_orders')||'[]'); } catch(e){ return []; } }
 function saveOrders(orders){ localStorage.setItem('wfm_orders', JSON.stringify(orders)); }
-function getAllDates(){
-    var orders=getOrders(), dates={};
+;
     orders.forEach(function(o){ if(o.appointmentDate){ dates[o.appointmentDate]=true; } });
     return Object.keys(dates).sort().reverse();
 }
-function getOrdersByDate(date){ return getOrders().filter(function(o){ return o.appointmentDate===date; }); }
-function getFilteredOrders(date, statusFilter){
-    return getOrders().filter(function(o){ return o.appointmentDate===date && (!statusFilter || o.orderStatus===statusFilter); });
+); }
+);
 }
 
 function switchTab(name){
@@ -134,48 +126,46 @@ function switchTab(name){
     else if(name==='history') renderHistory();
 }
 
-function renderDateBar(){
-    var bar=document.getElementById('dateBar');
-    var td=todayStr(), tm=tomorrowStr(), allDates=getAllDates();
-    var html='<div class="date-chip'+(selectedDate===td?' active':'')+'" onclick="pickDate(\''+td+'\')">'+td+' '+getWeekday(new Date())+'</div>';
-    html+='<div class="date-chip'+(selectedDate===tm?' active':'')+'" onclick="pickDate(\''+tm+'\')">'+tm+' '+getWeekday(new Date(Date.now()+86400000))+'</div>';
-    if(allDates.length>0){
-        html+='<select class="date-select" onchange="pickDate(this.value)">';
-        html+='<option value="">Other dates...</option>';
-        allDates.forEach(function(d){
-            var sel=selectedDate===d?' selected':'';
-            html+='<option value="'+d+'"'+sel+'>'+d+'</option>';
-        });
+);
         html+='</select>';
     }
     bar.innerHTML=html;
 }
 
-function pickDate(d){ if(d){ selectedDate=d; renderHome(); } }
+ }
 
 function renderHome(){
-    renderDateBar();
-    var active=getFilteredOrders(selectedDate,'active');
-    var allDate=getOrdersByDate(selectedDate);
-    var doneCount=allDate.filter(function(o){return o.orderStatus==='done';}).length;
-    var pausedCount=allDate.filter(function(o){return o.orderStatus==='paused';}).length;
+    var orders=getOrders().filter(function(o){ return o.orderStatus!=='done' && o.orderStatus!=='paused'; });
+    var doneAll=getOrders().filter(function(o){ return o.orderStatus==='done'; }).length;
+    var pausedAll=getOrders().filter(function(o){ return o.orderStatus==='paused'; }).length;
 
-    var sum=document.getElementById('summary');
-    sum.innerHTML='<span class="s-pending">'+active.length+' pending</span>'+
-        (doneCount?'<span class="s-done">'+doneCount+' done</span>':'')+
-        (pausedCount?'<span class="s-paused">'+pausedCount+' paused</span>':'');
+    document.getElementById('summary').innerHTML=
+        '<span class="s-pending">'+orders.length+' pending</span>'+
+        (doneAll?'<span class="s-done">'+doneAll+' done</span>':'')+
+        (pausedAll?'<span class="s-paused">'+pausedAll+' paused</span>':'');
 
     var list=document.getElementById('orderList');
-    if(active.length===0){
-        list.innerHTML='<div class="empty">No orders for '+selectedDate+'</div>';
+    if(orders.length===0){
+        list.innerHTML='<div class="empty">No orders</div>';
         return;
     }
-    var html='';
-    active.forEach(function(o,i){ html+=renderCard(o,i); });
-    list.innerHTML=html;
+    // Group by date
+    byDate={};
+    orders.forEach(function(o){
+        if(!byDate[o.appointmentDate]) byDate[o.appointmentDate]=[];
+        byDate[o.appointmentDate].push(o);
+    });
+    dates=Object.keys(byDate).sort();
+    var h='';
+    dates.forEach(function(d){
+        h+='<div style="font-weight:700;color:#667eea;margin:10px 0 6px;font-size:14px">'+d+'</div>';
+        byDate[d].forEach(function(o,i){ h+=renderCard(o,i); });
+    });
+    list.innerHTML=h;
 }
 
 function renderCard(o,idx){
+    var cls=o.orderStatus==='done'?' done':o.orderStatus==='paused'?' paused':'';
     var cls=o.orderStatus==='done'?' done':o.orderStatus==='paused'?' paused':'';
     var stCls=o.orderStatus==='done'?'st-complete':o.orderStatus==='paused'?'st-paused':'st-active';
     var stText=o.orderStatus==='done'?'DONE':o.orderStatus==='paused'?'PAUSED':'ACTIVE';
@@ -204,22 +194,22 @@ function field(label,value){
     return '<div class="order-field"><span class="order-label">'+label+'</span><span class="order-value">'+escapeHtml(value)+'</span></div>';
 }
 
-function updateFare(idx,val){
+function updateFare(jobId,sn,date,val){
     var orders=getOrders();
-    var active=getFilteredOrders(selectedDate,'active');
-    var target=active[idx];
-    if(!target) return;
-    var realIdx=orders.findIndex(function(o){ return o.jobId===target.jobId && o.serviceNumber===target.serviceNumber && o.appointmentDate===target.appointmentDate; });
-    if(realIdx>=0){ orders[realIdx].fare=val; saveOrders(orders); showToast('Fare saved'); }
+    for(var i=0;i<orders.length;i++){
+        if(orders[i].jobId===jobId&&orders[i].serviceNumber===sn&&orders[i].appointmentDate===date){
+            orders[i].fare=val; saveOrders(orders); showToast('Fare saved'); return;
+        }
+    }
 }
 
-function markOrder(idx,status){
+function markOrder(jobId,sn,date,status){
     var orders=getOrders();
-    var active=getFilteredOrders(selectedDate,'active');
-    var target=active[idx];
-    if(!target) return;
-    var realIdx=orders.findIndex(function(o){ return o.jobId===target.jobId && o.serviceNumber===target.serviceNumber && o.appointmentDate===target.appointmentDate; });
-    if(realIdx>=0){ orders[realIdx].orderStatus=status; saveOrders(orders); renderHome(); showToast(status==='done'?'Done!':'Paused'); }
+    for(var i=0;i<orders.length;i++){
+        if(orders[i].jobId===jobId&&orders[i].serviceNumber===sn&&orders[i].appointmentDate===date){
+            orders[i].orderStatus=status; saveOrders(orders); renderHome(); showToast(status==='done'?'Done!':'Paused'); return;
+        }
+    }
 }
 
 function renderHistory(){
