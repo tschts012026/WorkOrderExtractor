@@ -551,39 +551,54 @@ function saveOrders(orders) { localStorage.setItem('wfm_orders', JSON.stringify(
         function extractEnglish(text) {
             var fields = {};
             var lines = text.split('\n');
+            // Pass 1: "Label: Value" on same line
             for (var i = 0; i < lines.length; i++) {
-                var m = lines[i].match(/^\s*([A-Za-z][A-Za-z ]+?)\s*[:：]\s*(.*)/);
-                if (m && m[1] && m[2]) { var k = m[1].trim().toLowerCase(); var v = m[2].trim(); if (v) fields[k] = v; }
-            }
-            var contactName = null, contactPhone = null;
-            var contactRaw = fields['contact'] || null;
-            if (contactRaw) {
-                var pm = contactRaw.match(/^(.+?)\s+(\d{8})\s*$/);
-                if (pm) { contactName = pm[1].trim(); contactPhone = pm[2]; }
-                else {
-                    var pm2 = contactRaw.match(/(\d{8})/);
-                    if (pm2) { contactPhone = pm2[1]; contactName = contactRaw.replace(pm2[1], '').trim(); }
-                    else { contactName = contactRaw; }
+                var line = lines[i].trim();
+                var m = line.match(/^([A-Za-z][A-Za-z \/\(\)]+?)\s*[:\uff1a]\s*(.*)/);
+                if (m && m[1]) {
+                    var k = m[1].trim().toLowerCase();
+                    var v = m[2].trim();
+                    if (v) fields[k] = v;
                 }
             }
-            if (!contactPhone) {
-                var pm3 = text.match(/(?:Tel|Phone)[:：\s]*(\d{8})/i);
-                if (pm3) contactPhone = pm3[1];
+            // Pass 2: "Label" alone on a line, value on next line
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+                if (!line) continue;
+                if (line.match(/^([A-Za-z][A-Za-z \/\(\)]+?)\s*[:\uff1a]\s*(.*)/)) continue; // already handled
+                var labelMatch = line.match(/^([A-Za-z][A-Za-z \/\(\)]+)$/);
+                if (labelMatch && i + 1 < lines.length) {
+                    var k = labelMatch[1].trim().toLowerCase();
+                    if (fields[k]) continue; // already have it from pass 1
+                    var nxt = lines[i+1].trim();
+                    if (nxt && !nxt.match(/^[A-Za-z][A-Za-z \/\(\)]+$/)) {
+                        fields[k] = nxt;
+                        i++;
+                    }
+                }
             }
+            // Build result - use original labels
+            var jobId = fields['job id'] || null;
+            var grid  = fields['exchange / grid'] || fields['grid'] || null;
+            var svc   = fields['service number'] || null;
+            var addr  = fields['a end address'] || fields['address'] || null;
+            var appt  = fields['appointment date'] || null;
+            var time  = fields['appointment time'] || null;
+            var status= fields['status'] || null;
+            var pid   = fields['pid desc'] || fields['pid'] || null;
+            var cName = fields['contact name'] || null;
+            var cNo   = fields['contact no.'] || fields['contact no'] || null;
+            var contactDisplay = '';
+            if (cName && cNo) contactDisplay = cName + ' ' + cNo;
+            else if (cName) contactDisplay = cName;
+            else if (fields['contact']) contactDisplay = fields['contact'];
             return {
-                jobId: fields['job id'] || null,
-                grid: fields['grid'] || null,
-                serviceNumber: fields['service number'] || null,
-                address: fields['address'] || null,
-                appointmentDate: fields['appointment date'] || null,
-                time: fields['time'] || null,
-                contact: contactName,
-                phone: contactPhone,
-                status: fields['status'] || null,
-                pidDesc: fields['pid desc'] || fields['pid'] || null
+                jobId: jobId, grid: grid, serviceNumber: svc,
+                address: addr, appointmentDate: appt, time: time,
+                contact: contactDisplay, phone: cNo,
+                status: status, pidDesc: pid
             };
         }
-
         function extractName(text) {
             var patterns = [/姓名[：:]\s*([^\n]{2,20})/i, /名字[：:]\s*([^\n]{2,20})/i, /聯絡人[：:]\s*([^\n]{2,20})/i];
             for (var i = 0; i < patterns.length; i++) { var m = text.match(patterns[i]); if (m && m[1]) return m[1].trim(); }
