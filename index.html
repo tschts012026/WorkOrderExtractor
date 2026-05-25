@@ -141,7 +141,7 @@ function renderHistory(){
 
 function card(o){
   var s=o.orderStatus==="done"?"done":o.orderStatus==="paused"?"paused":"";
-  return "<div class=\"order-card "+s+"\">"+cardInner(o,false)+"</div>";
+  return "<div class=\"order-card "+s+"\">"+cardInner(o,true)+"</div>";
 }
 function cardFull(o){
   var s=o.orderStatus==="done"?"done":o.orderStatus==="paused"?"paused":"";
@@ -349,4 +349,6 @@ if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch
 </script>
 </body>
 </html>
+
+
 
