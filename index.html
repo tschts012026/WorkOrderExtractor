@@ -242,14 +242,14 @@ function doImport(ev){
 }
 
 /* EXTRACT */
-var KL={"job id":"job id","jobid":"job id","exchange / grid":"exchange / grid","grid":"grid","bsn":"bsn","bsn.":"bsn","service number":"service number","service #":"service number","appointment date":"appointment date","appointment time":"appointment time","status":"status","pid desc":"pid desc","pid":"pid desc","a end address":"a end address","address":"a end address","address showmap":"a end address","contact name":"contact name","contact no.":"contact no.","contact no":"contact no.","contact mobile":"contact mobile"};
+var KL={"job id":"job id","jobid":"job id","exchange / grid":"exchange / grid","grid":"grid","bsn":"bsn","bsn.":"bsn","service number":"service number","service #":"service number","appointment date":"appointment date","appointment time":"appointment time","status":"status","pid desc":"pid desc","pid":"pid","a end address":"a end address","address":"a end address","address showmap":"a end address","contact name":"contact name","contact no.":"contact no.","contact no":"contact no.","contact mobile":"contact mobile"};
 
 function extractEnglish(text){
   var fields={},lines=text.split("\n"),i=0;
   while(i<lines.length){
     var line=lines[i].trim();
     if(!line){i++;continue;}
-    var m=line.match(/^([A-Za-z][A-Za-z \/()#&]+?)\s*[:\uff1a]\s*(.*)/);
+    var m=line.match(/^([A-Za-z][A-Za-z \/.()#&]+?)\s*[:\uff1a]\s*(.*)/);
     if(m&&m[2].trim()){var k=m[1].trim().toLowerCase();if(KL[k])fields[KL[k]]=m[2].trim();i++;continue;}
     var lk=line.toLowerCase();
     if(KL[lk]&&!fields[KL[lk]]){
@@ -262,7 +262,7 @@ function extractEnglish(text){
   if((!cno||!/\d{4}/.test(cno))&&cm&&/\d{4}/.test(cm))cno=cm;
   if(cn)cn=cn.replace(/\s*(?:Contact(?:\s+(?:Mobile|No\.?|Number|Tel|Phone))?)$/i,"").trim();
   if(cn)cn=cn.replace(/\s*(?:Mobile|No\.?|Number|Tel|Phone)$/i,"").trim();
-  return{jobId:fields["job id"]||null,grid:fields["exchange / grid"]||fields["grid"]||null,serviceNumber:fields["service number"]||null,bsn:fields["bsn"]||null,address:fields["a end address"]||null,appointmentDate:fields["appointment date"]||null,time:fields["appointment time"]||null,contact:cn||null,phone:cno||null,status:fields["status"]||null,pidDesc:fields["pid desc"]||null};
+  return{jobId:fields["job id"]||null,pid:fields["pid"]||null,grid:fields["exchange / grid"]||fields["grid"]||null,serviceNumber:fields["service number"]||null,bsn:fields["bsn"]||null,address:fields["a end address"]||null,appointmentDate:fields["appointment date"]||null,time:fields["appointment time"]||null,contact:cn||null,phone:cno||null,status:fields["status"]||null,pidDesc:fields["pid desc"]||null};
 }
 
 function doExtract(){
