@@ -268,7 +268,7 @@ function doExtract(){
   var data=extractEnglish(text);
   if(!data.jobId&&!data.serviceNumber&&!data.address){toast("Cannot extract");return;}
   var box=document.getElementById("resultBox");box.style.display="block";
-  var items=[["Job ID",data.jobId],["Grid",data.grid],["Service #",data.serviceNumber],["BSN",data.bsn],["Address",data.address],["Date",data.appointmentDate],["Time",data.time],["Contact",data.contact],["Phone",data.phone],["Status",data.status],["PID",data.pidDesc]];
+  var items=[["Job ID",data.jobId],["Grid",data.grid],["Service #",data.serviceNumber],["BSN",data.bsn],["Address",data.address],["Date",data.appointmentDate],["Time",data.time],["Contact",data.contact],["Phone",data.phone],["Status",data.status],["PID Desc",data.pidDesc]];
   var h="<div style=\"display:flex;justify-content:space-between;align-items:center;margin-bottom:6px\"><b>Result</b><button onclick=\"saveResult()\" style=\"padding:5px 14px;border:none;border-radius:8px;background:#667eea;color:#fff;font-weight:700;cursor:pointer;font-size:12px\">Save</button></div>";
   items.forEach(function(it){h+="<div class=\"ri\"><span class=\"rl\">"+it[0]+"</span><span class=\"rv\">"+esc(it[1]||"(N/A)")+"</span></div>";});
   box.innerHTML=h;box.dataset.data=JSON.stringify(data);
