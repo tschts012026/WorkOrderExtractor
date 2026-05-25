@@ -566,6 +566,7 @@ function saveOrders(orders) { localStorage.setItem('wfm_orders', JSON.stringify(
                 'contact no. ': 'contact no.',
                 'address showmap': 'a end address',
                 'address': 'a end address',
+                'contact mobile': 'contact mobile',
             };
             for (var i = 0; i < lines.length; i++) {
                 var line = lines[i].trim();
@@ -589,9 +590,10 @@ function saveOrders(orders) { localStorage.setItem('wfm_orders', JSON.stringify(
             // Build result
             var cName = fields['contact name'];
             var cNo   = fields['contact no.'] || fields['contact no'] || fields['contact no'];
-            // If "phone" is not a real number (e.g. placeholder text like "Contact Mobile"), clear it
-            if (cNo && !/\d{4}/.test(cNo)) { cNo = ''; }
-            // Also clean cName: remove trailing "Contact Mobile" / "Contact No." etc
+            var cMob  = fields['contact mobile'];
+            // Prefer contact mobile if contact no is empty or placeholder
+            if ((!cNo || !/\d{4}/.test(cNo)) && cMob && /\d{4}/.test(cMob)) { cNo = cMob; }
+            // Clean cName: remove trailing placeholder text
             if (cName) {
                 cName = cName.replace(/\s*(?:Contact(?:\s+(?:Mobile|No\.?|Number|Tel|Phone))?)$/i, '').trim();
                 cName = cName.replace(/\s*(?:Mobile|No\.?|Number|Tel|Phone)$/i, '').trim();
