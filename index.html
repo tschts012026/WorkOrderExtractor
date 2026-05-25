@@ -589,6 +589,13 @@ function saveOrders(orders) { localStorage.setItem('wfm_orders', JSON.stringify(
             // Build result
             var cName = fields['contact name'];
             var cNo   = fields['contact no.'] || fields['contact no'] || fields['contact no'];
+            // If "phone" is not a real number (e.g. placeholder text like "Contact Mobile"), clear it
+            if (cNo && !/\d{4}/.test(cNo)) { cNo = ''; }
+            // Also clean cName: remove trailing "Contact Mobile" / "Contact No." etc
+            if (cName) {
+                cName = cName.replace(/\s*(?:Contact(?:\s+(?:Mobile|No\.?|Number|Tel|Phone))?)$/i, '').trim();
+                cName = cName.replace(/\s*(?:Mobile|No\.?|Number|Tel|Phone)$/i, '').trim();
+            }
             var contactDisplay = (cName && cNo) ? (cName + ' ' + cNo) : (cName || '');
             return {
                 jobId: fields['job id'],
