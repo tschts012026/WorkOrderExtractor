@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wfm-v21';
+const CACHE_NAME = 'wfm-v31';
 const ASSETS = ['./', './index.html', './manifest.json', './sw.js'];
 
 self.addEventListener('install', event => {
@@ -15,8 +15,18 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
+// Network-first: 優先攞網絡最新版，離線先 fallback cache
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request).then(r => r || fetch(event.request))
+    fetch(event.request).then(response => {
+      // 網絡成功：更新 cache 並返回最新版
+      if (response && response.status === 200) {
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, response.clone()));
+      }
+      return response;
+    }).catch(() => {
+      // 離線：用 cache
+      return caches.match(event.request);
+    })
   );
 });
