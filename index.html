@@ -262,7 +262,7 @@ function extractEnglish(text){
   if((!cno||!/\d{4}/.test(cno))&&cm&&/\d{4}/.test(cm))cno=cm;
   if(cn)cn=cn.replace(/\s*(?:Contact(?:\s+(?:Mobile|No\.?|Number|Tel|Phone))?)$/i,"").trim();
   if(cn)cn=cn.replace(/\s*(?:Mobile|No\.?|Number|Tel|Phone)$/i,"").trim();
-  return{jobId:fields["job id"]||null,pid:fields["pid"]||null,grid:fields["exchange / grid"]||fields["grid"]||null,serviceNumber:fields["service number"]||null,bsn:fields["bsn"]||null,address:fields["a end address"]||null,appointmentDate:fields["appointment date"]||null,time:fields["appointment time"]||null,contact:cn||null,phone:cno||null,status:fields["status"]||null,pidDesc:fields["pid desc"]||null};
+  return{jobId:fields["job id"]||null,pid:fields["pid"]||null,grid:fields["exchange / grid"]||fields["grid"]||null,serviceNumber:fields["service number"]||null,bsn:fields["bsn"]||null,address:fields["a end address"]||null,appointmentDate:fields["appointment date"]||null,time:fields["appointment time"]||null,contact:cn||null,phone:cno||null,status:fields["status"]||null,pidDesc:fields["pid desc"]||fields["pid"]||null};
 }
 
 function doExtract(){
