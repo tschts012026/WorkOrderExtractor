@@ -1,712 +1,374 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WFM 工單管家 v7</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh; padding: 15px;
-        }
-        .container {
-            max-width: 800px; margin: 0 auto; background: white;
-            border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white; padding: 18px 25px; text-align: center;
-        }
-        .header h1 { font-size: 22px; margin-bottom: 4px; }
-        .header p { opacity: 0.9; font-size: 12px; }
-        .content { padding: 15px; }
-        .tab-bar {
-            display: flex; margin-bottom: 12px; background: #f5f5f5;
-            border-radius: 10px; padding: 3px;
-        }
-        .tab-bar button {
-            flex: 1; padding: 9px; border: none; border-radius: 8px;
-            font-size: 13px; font-weight: 600; cursor: pointer;
-            background: transparent; color: #666; transition: all 0.3s;
-        }
-        .tab-bar button.active {
-            background: white; color: #667eea;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        .date-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
-        /* Date picker - Work List style */
-        .date-picker-row {
-            display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
-        }
-        .date-picker-label {
-            font-size: 14px; font-weight: 700; color: #333; min-width: 42px;
-        }
-        .date-picker-select {
-            flex: 1; padding: 10px 14px; border: 2px solid #e0e0e0;
-            border-radius: 10px; font-size: 15px; font-weight: 600;
-            color: #333; background: white; cursor: pointer;
-            appearance: none; -webkit-appearance: none;
-            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat; background-position: right 12px center;
-            padding-right: 32px;
-        }
-        .date-picker-select:focus { outline: none; border-color: #667eea; }
-
-        /* Date list - Work List App style */
-        .date-list { margin-bottom: 10px; }
-        .date-list-item {
-            display: flex; align-items: center; padding: 12px 16px;
-            border-bottom: 1px solid #f0f0f0; cursor: pointer;
-            transition: background 0.15s;
-        }
-        .date-list-item:last-child { border-bottom: none; }
-        .date-list-item:hover { background: #f9f9f9; }
-        .date-list-item.selected { background: #f0f4ff; }
-        .date-radio {
-            width: 20px; height: 20px; border: 2px solid #ccc;
-            border-radius: 50%; margin-right: 12px; flex-shrink: 0;
-            position: relative; transition: all 0.15s;
-        }
-        .date-list-item.selected .date-radio {
-            border-color: #667eea;
-        }
-        .date-list-item.selected .date-radio::after {
-            content: ''; position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 10px; height: 10px; border-radius: 50%; background: #667eea;
-        }
-        .date-text { font-size: 15px; font-weight: 600; color: #333; }
-        .date-count { margin-left: auto; font-size: 13px; color: #999; font-weight: 500; }
-        .date-chip {
-            padding: 5px 12px; border-radius: 20px; font-size: 13px;
-            font-weight: 600; cursor: pointer; border: 2px solid #e0e0e0;
-            background: white; color: #666; transition: all 0.2s; white-space: nowrap;
-        }
-        .date-chip:hover { border-color: #667eea; color: #667eea; }
-        .date-chip.active { background: #667eea; color: white; border-color: #667eea; }
-        .date-chip.today { border-color: #e74c3c; color: #e74c3c; }
-        .date-chip.today.active { background: #e74c3c; color: white; border-color: #e74c3c; }
-        .date-chip.tomorrow { border-color: #f39c12; color: #f39c12; }
-        .date-chip.tomorrow.active { background: #f39c12; color: white; border-color: #f39c12; }
-        .date-group-header {
-            background: #667eea; color: white; border-radius: 10px; padding: 10px 14px;
-            margin-bottom: 10px; font-size: 14px; font-weight: 700; cursor: pointer;
-        }
-        .date-group-header:hover { opacity: 0.9; }
-
-        .order-card {
-            background: #f9f9f9; border-radius: 12px; padding: 12px;
-            margin-bottom: 8px; border-left: 4px solid #667eea;
-        }
-        .order-card .order-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 6px;
-        }
-        .order-card .order-id { font-weight: 700; color: #333; font-size: 15px; }
-        .order-card .order-status-badge {
-            background: #667eea; color: white; padding: 2px 8px;
-            border-radius: 10px; font-size: 11px; font-weight: 600;
-        }
-        .order-card .order-body { font-size: 12px; color: #555; line-height: 1.7; }
-        .order-card .phone-link { color: #667eea; text-decoration: none; font-weight: 600; }
-        .order-card.done { border-left-color: #27ae60; opacity: 0.7; }
-        .order-card.paused { border-left-color: #f39c12; opacity: 0.7; }
-        .badge-done { background: #27ae60; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-        .badge-paused { background: #f39c12; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-
-        .order-actions {
-            display: flex; align-items: center; gap: 6px;
-            margin-top: 8px; padding-top: 8px; border-top: 1px solid #e0e0e0;
-            flex-wrap: wrap;
-        }
-        .fare-input {
-            width: 80px; padding: 6px 8px; border: 2px solid #e0e0e0;
-            border-radius: 6px; font-size: 14px; text-align: right;
-        }
-        .fare-input:focus { outline: none; border-color: #667eea; }
-        .fare-label { font-size: 12px; color: #888; font-weight: 600; }
-        .action-btn {
-            padding: 6px 14px; border: none; border-radius: 6px;
-            font-size: 13px; font-weight: 600; cursor: pointer;
-            color: white; transition: opacity 0.2s;
-        }
-        .action-btn:hover { opacity: 0.85; }
-        .btn-done { background: #27ae60; }
-        .btn-pause { background: #f39c12; }
-        .btn-undo { background: #95a5a6; }
-
-        .input-section { margin-bottom: 12px; }
-        .input-section label { display: block; margin-bottom: 6px; font-weight: 600; color: #333; font-size: 13px; }
-        textarea {
-            width: 100%; min-height: 130px; padding: 10px;
-            border: 2px solid #e0e0e0; border-radius: 10px;
-            font-size: 14px; font-family: inherit; resize: vertical;
-        }
-        textarea:focus { outline: none; border-color: #667eea; }
-        .button-group { display: flex; gap: 8px; margin-bottom: 12px; }
-        .button-group button {
-            flex: 1; padding: 10px; border: none; border-radius: 10px;
-            font-size: 14px; font-weight: 600; cursor: pointer;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-        .btn-secondary { background: #f5f5f5; color: #333; }
-        .result-section { display: none; }
-        .result-section.show { display: block; animation: fadeIn 0.4s; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(12px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .result-card {
-            background: #f9f9f9; border-radius: 10px; padding: 12px; margin-bottom: 12px;
-        }
-        .result-card h3 { color: #667eea; margin-bottom: 10px; font-size: 15px; }
-        .field { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0; }
-        .field:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .field-label { font-weight: 600; color: #666; font-size: 12px; margin-bottom: 2px; }
-        .field-value { color: #333; font-size: 14px; word-break: break-word; }
-        .field-value.empty { color: #999; font-style: italic; }
-        .result-actions { display: flex; gap: 8px; margin-top: 8px; }
-        .result-btn {
-            padding: 8px 15px; border: none; border-radius: 5px;
-            font-size: 13px; cursor: pointer; font-weight: 600; color: white;
-        }
-        .empty-msg { color: #999; text-align: center; padding: 25px; font-size: 14px; }
-
-        .history-section { margin-top: 15px; }
-        .history-toggle {
-            background: #f5f5f5; border: none; padding: 8px 14px;
-            border-radius: 8px; font-size: 13px; font-weight: 600;
-            cursor: pointer; color: #666; width: 100%; text-align: left;
-        }
-        .history-toggle:hover { background: #eee; }
-        .history-list { display: none; margin-top: 8px; }
-        .history-list.show { display: block; }
-
-        .toast {
-            position: fixed; bottom: 30px; left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: #333; color: white; padding: 12px 25px;
-            border-radius: 10px; font-size: 14px; opacity: 0;
-            transition: all 0.3s; z-index: 1000;
-        }
-        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WFM</title>
 <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#667eea">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;padding:12px}
+.container{max-width:800px;margin:0 auto;background:#fff;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.2);overflow:hidden}
+.header{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:16px;text-align:center;font-size:20px;font-weight:700}
+.tab-bar{display:flex;border-bottom:2px solid #eee}
+.tab-btn{flex:1;padding:12px 8px;text-align:center;font-size:14px;font-weight:600;border:none;background:none;cursor:pointer;color:#999;border-bottom:3px solid transparent;transition:.2s}
+.tab-btn.active{color:#667eea;border-bottom-color:#667eea}
+.tab-btn:active{background:#f0f0f0}
+.tab-content{display:none;padding:16px}
+.tab-content.active{display:block}
+
+/* Date Picker */
+.date-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.date-chip{padding:8px 16px;border-radius:20px;border:2px solid #ddd;background:#f8f8f8;font-size:13px;cursor:pointer;transition:.2s;white-space:nowrap}
+.date-chip:active,.date-chip.active{background:#667eea;color:#fff;border-color:#667eea}
+.date-select{flex:1;min-width:120px;padding:8px 12px;border-radius:20px;border:2px solid #ddd;font-size:13px;background:#f8f8f8;color:#333}
+.summary{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.summary span{padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600}
+.s-pending{background:#fff3cd;color:#856404}
+.s-done{background:#d4edda;color:#155724}
+.s-paused{background:#f8d7da;color:#721c24}
+
+/* Order Card */
+.order-card{background:#fafafa;border-radius:12px;padding:12px;margin-bottom:10px;border-left:4px solid #667eea;position:relative}
+.order-card.done{border-left-color:#28a745;opacity:.7}
+.order-card.paused{border-left-color:#ffc107;opacity:.7}
+.order-top{display:flex;justify-content:space-between;align-items:start;margin-bottom:6px}
+.order-id{font-weight:700;color:#667eea;font-size:15px}
+.order-status{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+.st-active{background:#e3f2fd;color:#1565c0}
+.st-complete{background:#c8e6c9;color:#2e7d32}
+.st-paused{background:#fff9c4;color:#f57f17}
+.order-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:13px;color:#555}
+.order-field{display:flex;gap:4px}
+.order-label{color:#999;font-size:11px;min-width:40px}
+.order-value{color:#333;word-break:break-all}
+.order-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.order-actions input[type=number]{width:70px;padding:4px 8px;border:1px solid #ddd;border-radius:8px;font-size:12px}
+.order-actions button{padding:4px 12px;border:none;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600}
+.btn-done{background:#28a745;color:#fff}
+.btn-pause{background:#ffc107;color:#333}
+.btn-restore{background:#17a2b8;color:#fff}
+.btn-del{background:#dc3545;color:#fff}
+.btn-fare{background:#6f42c1;color:#fff}
+.order-meta{display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:#bbb}
+
+/* Extract */
+textarea{width:100%;height:150px;border:2px solid #ddd;border-radius:12px;padding:12px;font-size:14px;font-family:monospace;resize:vertical}
+.extract-btns{display:flex;gap:8px;margin-top:10px}
+.extract-btns button{flex:1;padding:12px;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;transition:.2s}
+.btn-extract{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+.btn-extract:active{transform:scale(.98)}
+.btn-clear{background:#f0f0f0;color:#666}
+.result-box{margin-top:12px;padding:12px;background:#f8f9fa;border-radius:12px;display:none}
+.result-item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee;font-size:13px}
+.result-label{color:#999;font-weight:600;min-width:80px}
+.result-value{color:#333;text-align:right;word-break:break-all;max-width:60%}
+
+/* History */
+.history-section{margin-top:8px}
+.history-date{font-weight:700;color:#667eea;margin:12px 0 6px;font-size:14px}
+.empty{text-align:center;padding:40px 20px;color:#ccc;font-size:14px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 24px;border-radius:24px;font-size:14px;z-index:999;opacity:0;transition:.3s}
+.toast.show{opacity:1}
+@media(max-width:480px){.order-grid{grid-template-columns:1fr}.date-bar{gap:4px}}
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>WFM 工單管家</h1>
-            <p>提取 → 儲存 → 按日做 → 記車錢</p>
-        </div>
-        <div class="content">
-            <div class="tab-bar">
-                <button class="active" onclick="switchTab('home', this)">今日工作</button>
-                <button onclick="switchTab('extract', this)">提取</button>
-                <button onclick="switchTab('history', this)">歷史</button>
-                <button onclick="switchTab('alldates', this)">全部</button>
-            </div>
-
-            <div id="tab-home" class="tab-content active">
-                <div class="date-summary" id="dateSummary"></div>
-                <div id="dayOrders"></div>
-                <div id="dayHistory" class="history-section"></div>
-            </div>
-
-            <div id="tab-extract" class="tab-content">
-                <div class="input-section">
-                    <label>貼入工單內容：</label>
-                    <textarea id="inputText" placeholder="貼入工單 raw text..."></textarea>
-                </div>
-                <div class="button-group">
-                    <button class="btn-primary" onclick="extractData()">提取資料</button>
-                    <button class="btn-secondary" onclick="clearAll()">清除</button>
-                </div>
-                <div class="result-section" id="resultSection">
-                    <div class="result-card">
-                        <h3>提取結果</h3>
-                        <div id="resultContent"></div>
-                        <div class="result-actions">
-                            <button class="result-btn" style="background:#667eea;" onclick="copyResult()">複製</button>
-                            <button class="result-btn" style="background:#27ae60;flex:1;" onclick="saveResult()">儲存</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="tab-history" class="tab-content">
-                <div id="historyList"></div>
-            </div>
-
-            <div id="tab-alldates" class="tab-content">
-                <div class="date-picker-row">
-                    <span class="date-picker-label">Date:</span>
-                    <select class="date-picker-select" id="allDateSelect" onchange="onAllDateChange(this.value)"></select>
-                </div>
-                <div id="allDatesList"></div>
-            </div>
-        </div>
-    </div>
-    <div class="toast" id="toast"></div>
-
-    <script>
-        var lastResult = null;
-        var selectedDate = null;
-
-        function switchTab(tab, btn) {
-            try {
-                var contents = document.querySelectorAll('.tab-content');
-                for (var i = 0; i < contents.length; i++) contents[i].classList.remove('active');
-                var buttons = document.querySelectorAll('.tab-bar button');
-                for (var j = 0; j < buttons.length; j++) buttons[j].classList.remove('active');
-                document.getElementById('tab-' + tab).classList.add('active');
-                if (btn) btn.classList.add('active');
-                if (tab === 'home') renderHome();
-                if (tab === 'history') renderHistory();
-                if (tab === 'alldates') renderAllDates();
-            } catch(e) {
-                alert('Tab error: ' + e.message);
-            }
-        }
-
-        function getOrders() {
-            try {
-                var data = localStorage.getItem('wfm_orders');
-                if (!data) return [];
-                return JSON.parse(data);
-            } catch(e) {
-                return [];
-            }
-        }
-        function getAllDates() {
-            var orders = getOrders();
-            var dates = {};
-            for (var i = 0; i < orders.length; i++) {
-                var k = orders[i].appointmentDate || '\u672a\u6307\u5b9a';
-                dates[k] = true;
-            }
-            var keys = Object.keys(dates).sort(function(a, b) { return b.localeCompare(a); });
-            var today = formatDateObj(new Date());
-            var tmrObj = new Date(); tmrObj.setDate(tmrObj.getDate() + 1);
-            var tmr = formatDateObj(tmrObj);
-            if (keys.indexOf(today) === -1) keys.unshift(today);
-            if (keys.indexOf(tmr) === -1 && tmr !== today) keys.splice(1, 0, tmr);
-            return keys;
-        }
-function saveOrders(orders) { localStorage.setItem('wfm_orders', JSON.stringify(orders)); }
-
-        function renderHome() {
-            selectedDate = formatDateObj(new Date());
-            renderDayOrders();
-        }
-
-        function onAllDateChange(val) {
-            selectedDate = val;
-            renderAllDatesList();
-        }
-
-        function renderAllDatePicker() {
-            var dates = getAllDates();
-            var sel = document.getElementById('allDateSelect');
-            if (!sel) return;
-            if (!selectedDate) selectedDate = formatDateObj(new Date());
-            var todayStr = formatDateObj(new Date());
-            var html = '';
-            for (var i = 0; i < dates.length; i++) {
-                var d = dates[i];
-                var wd = d !== '\u672a\u6307\u5b9a' ? getWeekday(d) : '';
-                var isToday = d === todayStr;
-                html += '<option value="' + d + '"' + (selectedDate === d ? ' selected' : '') + '>' + d + ' ' + wd + (isToday ? ' \u4eca\u65e5' : '') + '</option>';
-            }
-            sel.innerHTML = html;
-        }
-
-
-
-        function selectDate(d) { selectedDate = d; renderHome(); }
-
-        function renderDayOrders() {
-            var orders = getOrders();
-            var todayStr = formatDateObj(new Date());
-            var displayDate = selectedDate || todayStr;
-            var dayOrders = orders.filter(function(s) { return s.appointmentDate === displayDate; });
-            var active = dayOrders.filter(function(s) { return !s.orderStatus || s.orderStatus === 'active'; });
-            var completed = dayOrders.filter(function(s) { return s.orderStatus === 'done'; });
-            var paused = dayOrders.filter(function(s) { return s.orderStatus === 'paused'; });
-            var wd = getWeekday(displayDate);
-            var isToday = displayDate === todayStr;
-            document.getElementById('dateSummary').innerHTML =
-                displayDate + ' ' + wd + (isToday ? ' 今日' : '') + ' \u2014 ' + active.length + ' 單待做' +
-                (completed.length + paused.length > 0 ? ' | 完成' + completed.length + ' 暫停' + paused.length : '');
-            var container = document.getElementById('dayOrders');
-            if (!active.length && !completed.length && !paused.length) {
-                container.innerHTML = '<div class="empty-msg">呢日冇工單</div>';
-                document.getElementById('dayHistory').innerHTML = '';
-                return;
-            }
-            if (active.length) {
-                container.innerHTML = '';
-                for (var i = 0; i < active.length; i++) container.innerHTML += renderOrderCard(active[i], i, true);
-            } else {
-                container.innerHTML = '<div class="empty-msg">全部搞掂晒！</div>';
-            }
-            var histOrders = completed.concat(paused);
-            var histHtml = '';
-            if (histOrders.length) {
-                histHtml = '<button class="history-toggle" onclick="this.nextElementSibling.classList.toggle(\'show\')">已處理（' + completed.length + '完成 / ' + paused.length + '暫停）</button><div class="history-list">';
-                for (var k = 0; k < histOrders.length; k++) histHtml += renderOrderCard(histOrders[k], k, false);
-                histHtml += '</div>';
-            }
-            document.getElementById('dayHistory').innerHTML = histHtml;
-        }
-
-        function renderOrderCard(s, i, isActive) {
-            var statusClass = s.orderStatus === 'done' ? 'done' : s.orderStatus === 'paused' ? 'paused' : '';
-            var badge = s.orderStatus === 'done' ? '<span class="badge-done">完成</span>' :
-                              s.orderStatus === 'paused' ? '<span class="badge-paused">暫停</span>' :
-                              '<span class="order-status-badge">' + (s.status || '待做') + '</span>';
-            var fareDisplay = s.fare ? '<div>車錢：$' + s.fare + '</div>' : '';
-            var actions = '';
-            if (isActive) {
-                actions = '<div class="order-actions"><span class="fare-label">車錢 $</span><input class="fare-input" type="number" min="0" step="0.5" placeholder="0" value="' + (s.fare || '') + '" onchange="updateFare(\'' + s.jobId + '\', this.value)"><button class="action-btn btn-done" onclick="markOrder(\'' + s.jobId + '\',\'done\')">完成</button><button class="action-btn btn-pause" onclick="markOrder(\'' + s.jobId + '\',\'paused\')">暫停</button></div>';
-            } else {
-                actions = '<div class="order-actions"><button class="action-btn btn-undo" onclick="markOrder(\'' + s.jobId + '\',\'active\')">恢復</button>' + (!s.fare ? '<span class="fare-label">車錢 $</span><input class="fare-input" type="number" min="0" step="0.5" placeholder="0" onchange="updateFare(\'' + s.jobId + '\', this.value)">' : '') + '</div>';
-            }
-            return '<div class="order-card ' + statusClass + '"><div class="order-header"><span class="order-id">#' + s.jobId + '</span><span>' + badge + '</span></div><div class="order-body"><div>' + (s.grid || '') + ' | ' + (s.serviceNumber || '') + '</div><div>' + (s.address || '') + '</div><div>' + (s.time || '') + '</div><div>' + (s.contact || '') + ' ' + (s.phone ? '<a class="phone-link" href="tel:' + s.phone + '">' + s.phone + '</a>' : '') + '</div><div>' + (s.pidDesc || '') + '</div>' + fareDisplay + '</div>' + actions + '</div>';
-        }
-
-        function updateFare(jobId, value) {
-            var orders = getOrders();
-            for (var i = 0; i < orders.length; i++) {
-                if (orders[i].jobId === jobId) { orders[i].fare = value || null; saveOrders(orders); return; }
-            }
-        }
-
-        function markOrder(jobId, status) {
-            var orders = getOrders();
-            for (var i = 0; i < orders.length; i++) {
-                if (orders[i].jobId === jobId) {
-                    orders[i].orderStatus = status;
-                    if (status === 'done' || status === 'paused') {
-                        orders[i].completedAt = new Date().toLocaleString('zh-TW');
-                    } else {
-                        orders[i].completedAt = null;
-                    }
-                    saveOrders(orders);
-                    renderHome();
-                    showToast(status === 'done' ? '已完成！' : status === 'paused' ? '已暫停' : '已恢復');
-                    return;
-                }
-            }
-        }
-
-        function renderHistory() {
-            var orders = getOrders();
-            var done = orders.filter(function(s) { return s.orderStatus === 'done'; });
-            var paused = orders.filter(function(s) { return s.orderStatus === 'paused'; });
-            if (!done.length && !paused.length) {
-                document.getElementById('historyList').innerHTML = '<div class="empty-msg">暫無歷史記錄</div>';
-                return;
-            }
-            var groups = {};
-            var all = done.concat(paused);
-            for (var i = 0; i < all.length; i++) {
-                var k = all[i].appointmentDate || '未指定日期';
-                if (!groups[k]) groups[k] = [];
-                groups[k].push(all[i]);
-            }
-            var sortedKeys = Object.keys(groups).sort(function(a, b) {
-                if (a === '未指定日期') return 1;
-                if (b === '未指定日期') return -1;
-                return b.localeCompare(a);
-            });
-            var totalFare = 0;
-            for (var j = 0; j < done.length; j++) totalFare += (parseFloat(done[j].fare) || 0);
-            var html = '<div class="date-summary">總車錢：$' + totalFare.toFixed(1) + '（' + done.length + '單已完成）</div>';
-            for (var m = 0; m < sortedKeys.length; m++) {
-                var gOrders = groups[sortedKeys[m]];
-                var dayFare = 0;
-                for (var n = 0; n < gOrders.length; n++) { if (gOrders[n].orderStatus === 'done') dayFare += (parseFloat(gOrders[n].fare) || 0); }
-                var wd = sortedKeys[m] !== '未指定日期' ? getWeekday(sortedKeys[m]) : '';
-                html += '<div class="date-summary">' + sortedKeys[m] + ' ' + wd + ' \u2014 車錢 $' + dayFare.toFixed(1) + '</div>';
-                for (var p = 0; p < gOrders.length; p++) html += renderOrderCard(gOrders[p], p, false);
-            }
-            document.getElementById('historyList').innerHTML = html;
-        }
-
-        // ---- ALL DATES TAB (Work List App style) ----
-        function renderAllDates() {
-            renderAllDatePicker();
-            renderAllDatesList();
-        }
-
-        function renderAllDatesList() {
-            var orders = getOrders();
-            if (!orders.length) {
-                document.getElementById('allDatesList').innerHTML = '<div class="empty-msg">\u66ab\u7121\u5de5\u55ae</div>';
-                return;
-            }
-            var groups = {};
-            for (var i = 0; i < orders.length; i++) {
-                var k = orders[i].appointmentDate || '\u672a\u6307\u5b9a';
-                if (!groups[k]) groups[k] = [];
-                groups[k].push(orders[i]);
-            }
-            var sortedKeys = Object.keys(groups).sort(function(a, b) {
-                if (a === '\u672a\u6307\u5b9a') return 1;
-                if (b === '\u672a\u6307\u5b9a') return -1;
-                return b.localeCompare(a);
-            });
-            var todayStr = formatDateObj(new Date());
-
-            // Radio-style list
-            var html = '<div class="date-list">';
-            for (var j = 0; j < sortedKeys.length; j++) {
-                var dk = sortedKeys[j];
-                var gOrders = groups[dk];
-                var wd = dk !== '\u672a\u6307\u5b9a' ? getWeekday(dk) : '';
-                var isToday = dk === todayStr;
-                var isSelected = selectedDate === dk;
-                var activeCount = 0, doneCount = 0, pausedCount = 0;
-                for (var k2 = 0; k2 < gOrders.length; k2++) {
-                    var st = gOrders[k2].orderStatus;
-                    if (!st || st === 'active') activeCount++;
-                    else if (st === 'done') doneCount++;
-                    else if (st === 'paused') pausedCount++;
-                }
-                html += '<div class="date-list-item' + (isSelected ? ' selected' : '') + '" onclick="selectDateFromAll(\'' + dk + '\')">';
-                html += '<div class="date-radio"></div>';
-                html += '<div class="date-text">' + dk + ' ' + wd + (isToday ? ' \u4eca\u65e5' : '') + '</div>';
-                html += '<div class="date-count">' + gOrders.length + ' \u55ae';
-                if (activeCount || doneCount || pausedCount) {
-                    html += ' (';
-                    var parts = [];
-                    if (activeCount) parts.push(activeCount + '\u5f85\u505a');
-                    if (doneCount) parts.push(doneCount + '\u5b8c\u6210');
-                    if (pausedCount) parts.push(pausedCount + '\u66ab\u505c');
-                    html += parts.join('/');
-                    html += ')';
-                }
-                html += '</div></div>';
-
-                if (isSelected) {
-                    html += '<div style="padding:0 16px 8px 46px;">';
-                    for (var m = 0; m < gOrders.length; m++) {
-                        html += renderOrderCard(gOrders[m], m, !gOrders[m].orderStatus || gOrders[m].orderStatus === 'active');
-                    }
-                    html += '</div>';
-                }
-            }
-            html += '</div>';
-            document.getElementById('allDatesList').innerHTML = html;
-        }
-
-        function selectDateFromAll(d) {
-            selectedDate = d;
-            // Update select dropdown
-            var sel = document.getElementById('allDateSelect');
-            if (sel) sel.value = d;
-            renderAllDatesList();
-        }
-
-        function toggleDateGroup(id) {
-            var el = document.getElementById(id);
-            if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
-        }
-
-        function goToDate(dateKey) {
-            selectedDate = dateKey;
-            var btns = document.querySelectorAll('.tab-bar button');
-            switchTab('home', btns[0]);
-        }
-
-        function extractData() {
-            var input = document.getElementById('inputText').value.trim();
-            if (!input) { showToast('請先貼入工單內容'); return; }
-            var isEnglish = /^(Job ID|Grid|Service|Address|Appointment|Time|Contact|Status|PID)/m.test(input);
-            var result;
-            if (isEnglish) {
-                result = extractEnglish(input);
-            } else {
-                result = {
-                    jobId: null, grid: null, serviceNumber: null,
-                    address: extractAddress(input),
-                    appointmentDate: null, time: null,
-                    contact: extractName(input), phone: extractPhone(input),
-                    status: null, pidDesc: null
-                };
-            }
-            lastResult = result;
-            displayResult(result);
-        }
-
-        function extractEnglish(text) {
-            var fields = {};
-            var lines = text.split('\n');
-            // Known field labels (case-insensitive matching)
-            var knownLabels = {
-                'job id': 'job id', 'jobid': 'job id',
-                'exchange / grid': 'exchange / grid', 'grid': 'grid',
-                'service number': 'service number', 'service #': 'service number',
-                'appointment date': 'appointment date',
-                'appointment time': 'appointment time',
-                'status': 'status',
-                'pid desc': 'pid desc', 'pid': 'pid desc',
-                'a end address': 'a end address', 'address': 'address',
-                'contact name': 'contact name',
-                'contact no.': 'contact no.', 'contact no': 'contact no.',
-                'contact no. ': 'contact no.',
-                'address showmap': 'a end address',
-                'address': 'a end address',
-                'contact mobile': 'contact mobile',
-                'bsn': 'bsn',
-                'bsn.': 'bsn',
-            };
-            for (var i = 0; i < lines.length; i++) {
-                var line = lines[i].trim();
-                if (!line) continue;
-                // Try "Label: Value" same line
-                var m = line.match(/^([A-Za-z][A-Za-z \/\(\)]+?)\s*[:\uff1a]\s*(.*)/);
-                if (m && m[1]) {
-                    var k = m[1].trim().toLowerCase();
-                    var v = m[2].trim();
-                    if (v) fields[k] = v;
-                    else { var j=i+1; while(j<lines.length&&!lines[j].trim())j++; if(j<lines.length){fields[k]=lines[j].trim();i=j;} }
-                    continue;
-                }
-                // Check if this line is a known label
-                var lk = line.trim().toLowerCase();
-                if (knownLabels[lk] && !fields[knownLabels[lk]]) {
-                    var j2=i+1; while(j2<lines.length&&!lines[j2].trim())j2++;
-                    if(j2<lines.length){fields[knownLabels[lk]]=lines[j2].trim();i=j2;}
-                }
-            }
-            // Build result
-            var bsnVal  = fields['bsn'] || '(N/A)';
-            var cName = fields['contact name'];
-            var cNo   = fields['contact no.'] || fields['contact no'] || fields['contact no'];
-            var cMob  = fields['contact mobile'];
-            // Prefer contact mobile if contact no is empty or placeholder
-            if ((!cNo || !/\d{4}/.test(cNo)) && cMob && /\d{4}/.test(cMob)) { cNo = cMob; }
-            // Clean cName: remove trailing placeholder text
-            if (cName) {
-                cName = cName.replace(/\s*(?:Contact(?:\s+(?:Mobile|No\.?|Number|Tel|Phone))?)$/i, '').trim();
-                cName = cName.replace(/\s*(?:Mobile|No\.?|Number|Tel|Phone)$/i, '').trim();
-            }
-            var contactDisplay = (cName && cNo) ? (cName + ' ' + cNo) : (cName || '');
-            return {
-                jobId: fields['job id'],
-                grid: fields['exchange / grid'] || fields['grid'],
-                serviceNumber: fields['service number'],
-                address: fields['a end address'] || fields['address'],
-                appointmentDate: fields['appointment date'],
-                time: fields['appointment time'],
-                contact: contactDisplay,
-                phone: cNo,
-                status: fields['status'],
-                pidDesc: fields['pid desc']
-            };
-        }
-        function extractName(text) {
-            var patterns = [/姓名[：:]\s*([^\n]{2,20})/i, /名字[：:]\s*([^\n]{2,20})/i, /聯絡人[：:]\s*([^\n]{2,20})/i];
-            for (var i = 0; i < patterns.length; i++) { var m = text.match(patterns[i]); if (m && m[1]) return m[1].trim(); }
-            return null;
-        }
-        function extractPhone(text) {
-            var patterns = [/電話[：:]\s*([0-9\-\s]{8,15})/i, /([0-9]{4}[-\s]?[0-9]{4})/, /([0-9]{8})/];
-            for (var i = 0; i < patterns.length; i++) { var m = text.match(patterns[i]); if (m && m[1]) return m[1].trim(); }
-            return null;
-        }
-        function extractAddress(text) {
-            var patterns = [/地址[：:]\s*([^\n]{5,100})/i, /(香港[^\n]{5,100})/i, /(九龍[^\n]{5,100})/i, /(新界[^\n]{5,100})/i];
-            for (var i = 0; i < patterns.length; i++) { var m = text.match(patterns[i]); if (m && m[1]) return m[1].trim(); }
-            return null;
-        }
-
-        function displayResult(result) {
-            var fields = [
-                ['Job ID', 'jobId'], ['Grid', 'grid'],
-                ['Service #', 'serviceNumber'], ['Address', 'address'],
-                ['Date', 'appointmentDate'], ['Time', 'time'],
-                ['Contact', 'contact'], ['Phone', 'phone'],
-                ['Status', 'status'], ['PID Desc', 'pidDesc']
-            ];
-            var html = '';
-            for (var i = 0; i < fields.length; i++) {
-                var key = fields[i][1];
-                html += '<div class="field"><div class="field-label">' + fields[i][0] + '</div><div class="field-value' + (!result[key] ? ' empty' : '') + '">' + (result[key] || '（未找到）') + '</div></div>';
-            }
-            document.getElementById('resultContent').innerHTML = html;
-            document.getElementById('resultSection').classList.add('show');
-            showToast('提取完成！');
-        }
-
-        function saveResult() {
-            if (!lastResult || !lastResult.jobId) { showToast('沒有可儲存的資料'); return; }
-            var orders = getOrders();
-            for (var i = 0; i < orders.length; i++) { if (orders[i].jobId === lastResult.jobId) { showToast('此工單已儲存過'); return; } }
-            lastResult.savedAt = new Date().toLocaleString('zh-TW');
-            lastResult.orderStatus = 'active';
-            lastResult.fare = null;
-            orders.unshift(lastResult);
-            saveOrders(orders);
-            if (lastResult.appointmentDate) selectedDate = lastResult.appointmentDate;
-            showToast('已儲存！');
-        }
-
-        function clearAll() {
-            document.getElementById('inputText').value = '';
-            document.getElementById('resultSection').classList.remove('show');
-            lastResult = null;
-            showToast('已清除');
-        }
-
-        function copyResult() {
-            var text = document.getElementById('resultContent').innerText;
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(text).then(function() { showToast('已複製！'); }).catch(function() { showToast('複製失敗'); });
-            }
-        }
-
-        function formatDateObj(d) {
-            var y = d.getFullYear();
-            var m = String(d.getMonth() + 1).padStart(2, '0');
-            var day = String(d.getDate()).padStart(2, '0');
-            return y + '/' + m + '/' + day;
-        }
-        function getWeekday(dateStr) {
-            try {
-                var d = new Date(dateStr.replace(/\//g, '-'));
-                return '(' + ['日','一','二','三','四','五','六'][d.getDay()] + ')';
-            } catch(e) { return ''; }
-        }
-        function showToast(message) {
-            var toast = document.getElementById('toast');
-            toast.textContent = message; toast.classList.add('show');
-            setTimeout(function() { toast.classList.remove('show'); }, 3000);
-        }
-
-        selectedDate = formatDateObj(new Date());
-        renderHome();
-    </script>
+<div class="container">
+<div class="header">WFM</div>
+<div class="tab-bar">
+<button class="tab-btn active" onclick="switchTab('home')">Home</button>
+<button class="tab-btn" onclick="switchTab('extract')">Extract</button>
+<button class="tab-btn" onclick="switchTab('history')">History</button>
+</div>
+<div id="tab-home" class="tab-content active">
+<div class="date-bar" id="dateBar"></div>
+<div class="summary" id="summary"></div>
+<div id="orderList"></div>
+</div>
+<div id="tab-extract" class="tab-content">
+<textarea id="inputText" placeholder="Paste work order here..."></textarea>
+<div class="extract-btns">
+<button class="btn-extract" onclick="doExtract()">Extract</button>
+<button class="btn-clear" onclick="clearInput()">Clear</button>
+</div>
+<div class="result-box" id="resultBox"></div>
+</div>
+<div id="tab-history" class="tab-content">
+<div class="summary" id="historySummary"></div>
+<div id="historyList"></div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
 <script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('./sw.js').then(function() {
-      console.log('SW registered');
-    }).catch(function(err) {
-      console.log('SW reg failed', err);
-    });
-  });
+var selectedDate = new Date().toISOString().split('T')[0];
+
+function getDateStr(d){ return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0'); }
+function getWeekday(d){ return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]; }
+function todayStr(){ return getDateStr(new Date()); }
+function tomorrowStr(){ var d=new Date(); d.setDate(d.getDate()+1); return getDateStr(d); }
+function escapeHtml(s){ if(!s) return ''; return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function getOrders(){ try { return JSON.parse(localStorage.getItem('wfm_orders')||'[]'); } catch(e){ return []; } }
+function saveOrders(orders){ localStorage.setItem('wfm_orders', JSON.stringify(orders)); }
+function getAllDates(){
+    var orders=getOrders(), dates={};
+    orders.forEach(function(o){ if(o.appointmentDate){ dates[o.appointmentDate]=true; } });
+    return Object.keys(dates).sort().reverse();
 }
+function getOrdersByDate(date){ return getOrders().filter(function(o){ return o.appointmentDate===date; }); }
+function getFilteredOrders(date, statusFilter){
+    return getOrders().filter(function(o){ return o.appointmentDate===date && (!statusFilter || o.orderStatus===statusFilter); });
+}
+
+function switchTab(name){
+    document.querySelectorAll('.tab-content').forEach(function(el){ el.classList.remove('active'); });
+    document.querySelectorAll('.tab-btn').forEach(function(el){ el.classList.remove('active'); });
+    document.getElementById('tab-'+name).classList.add('active');
+    var btns=document.querySelectorAll('.tab-btn');
+    if(name==='home') btns[0].classList.add('active');
+    else if(name==='extract') btns[1].classList.add('active');
+    else btns[2].classList.add('active');
+    if(name==='home') renderHome();
+    else if(name==='history') renderHistory();
+}
+
+function renderDateBar(){
+    var bar=document.getElementById('dateBar');
+    var td=todayStr(), tm=tomorrowStr(), allDates=getAllDates();
+    var html='<div class="date-chip'+(selectedDate===td?' active':'')+'" onclick="pickDate(\''+td+'\')">'+td+' '+getWeekday(new Date())+'</div>';
+    html+='<div class="date-chip'+(selectedDate===tm?' active':'')+'" onclick="pickDate(\''+tm+'\')">'+tm+' '+getWeekday(new Date(Date.now()+86400000))+'</div>';
+    if(allDates.length>0){
+        html+='<select class="date-select" onchange="pickDate(this.value)">';
+        html+='<option value="">Other dates...</option>';
+        allDates.forEach(function(d){
+            var sel=selectedDate===d?' selected':'';
+            html+='<option value="'+d+'"'+sel+'>'+d+'</option>';
+        });
+        html+='</select>';
+    }
+    bar.innerHTML=html;
+}
+
+function pickDate(d){ if(d){ selectedDate=d; renderHome(); } }
+
+function renderHome(){
+    renderDateBar();
+    var active=getFilteredOrders(selectedDate,'active');
+    var allDate=getOrdersByDate(selectedDate);
+    var doneCount=allDate.filter(function(o){return o.orderStatus==='done';}).length;
+    var pausedCount=allDate.filter(function(o){return o.orderStatus==='paused';}).length;
+
+    var sum=document.getElementById('summary');
+    sum.innerHTML='<span class="s-pending">'+active.length+' pending</span>'+
+        (doneCount?'<span class="s-done">'+doneCount+' done</span>':'')+
+        (pausedCount?'<span class="s-paused">'+pausedCount+' paused</span>':'');
+
+    var list=document.getElementById('orderList');
+    if(active.length===0){
+        list.innerHTML='<div class="empty">No orders for '+selectedDate+'</div>';
+        return;
+    }
+    var html='';
+    active.forEach(function(o,i){ html+=renderCard(o,i); });
+    list.innerHTML=html;
+}
+
+function renderCard(o,idx){
+    var cls=o.orderStatus==='done'?' done':o.orderStatus==='paused'?' paused':'';
+    var stCls=o.orderStatus==='done'?'st-complete':o.orderStatus==='paused'?'st-paused':'st-active';
+    var stText=o.orderStatus==='done'?'DONE':o.orderStatus==='paused'?'PAUSED':'ACTIVE';
+    var html='<div class="order-card'+cls+'" id="card-'+idx+'">';
+    html+='<div class="order-top"><div class="order-id">'+escapeHtml(o.jobId||'N/A')+'</div>';
+    html+='<span class="order-status '+stCls+'">'+stText+'</span></div>';
+    html+='<div class="order-grid">';
+    html+=field('Grid',o.grid)+field('Service #',o.serviceNumber)+field('BSN',o.bsn)+field('Time',o.time);
+    html+=field('Status',o.status)+field('Contact',o.contact)+field('Phone',o.phone);
+    html+='</div>';
+    if(o.address) html+='<div class="order-field" style="margin-top:4px;font-size:12px;color:#888">'+escapeHtml(o.address)+'</div>';
+    if(o.pidDesc) html+='<div class="order-field" style="font-size:12px;color:#667eea">'+escapeHtml(o.pidDesc)+'</div>';
+    html+='<div class="order-actions">';
+    html+='<input type="number" placeholder="Fare" value="'+(o.fare||'')+'" onchange="updateFare('+idx+',this.value)">';
+    html+='<button class="btn-fare" onclick="updateFare('+idx+',this.previousElementSibling.value)">Save</button>';
+    html+='<button class="btn-done" onclick="markOrder('+idx+',\'done\')">Done</button>';
+    html+='<button class="btn-pause" onclick="markOrder('+idx+',\'paused\')">Pause</button>';
+    html+='</div>';
+    html+='<div class="order-meta"><span>'+escapeHtml(o.contact||'')+' '+escapeHtml(o.phone||'')+'</span></div>';
+    html+='</div>';
+    return html;
+}
+
+function field(label,value){
+    if(!value) return '';
+    return '<div class="order-field"><span class="order-label">'+label+'</span><span class="order-value">'+escapeHtml(value)+'</span></div>';
+}
+
+function updateFare(idx,val){
+    var orders=getOrders();
+    var active=getFilteredOrders(selectedDate,'active');
+    var target=active[idx];
+    if(!target) return;
+    var realIdx=orders.findIndex(function(o){ return o.jobId===target.jobId && o.serviceNumber===target.serviceNumber && o.appointmentDate===target.appointmentDate; });
+    if(realIdx>=0){ orders[realIdx].fare=val; saveOrders(orders); showToast('Fare saved'); }
+}
+
+function markOrder(idx,status){
+    var orders=getOrders();
+    var active=getFilteredOrders(selectedDate,'active');
+    var target=active[idx];
+    if(!target) return;
+    var realIdx=orders.findIndex(function(o){ return o.jobId===target.jobId && o.serviceNumber===target.serviceNumber && o.appointmentDate===target.appointmentDate; });
+    if(realIdx>=0){ orders[realIdx].orderStatus=status; saveOrders(orders); renderHome(); showToast(status==='done'?'Done!':'Paused'); }
+}
+
+function renderHistory(){
+    var orders=getOrders().filter(function(o){ return o.orderStatus==='done'||o.orderStatus==='paused'; });
+    var totalFare=orders.reduce(function(s,o){ return s+parseFloat(o.fare||0); },0);
+    document.getElementById('historySummary').innerHTML=
+        '<span class="s-done">'+orders.filter(function(o){return o.orderStatus==='done';}).length+' done</span>'+
+        '<span class="s-paused">'+orders.filter(function(o){return o.orderStatus==='paused';}).length+' paused</span>'+
+        '<span class="s-pending">Total fare: $'+totalFare.toFixed(1)+'</span>';
+
+    var byDate={};
+    orders.forEach(function(o){
+        if(!byDate[o.appointmentDate]) byDate[o.appointmentDate]=[];
+        byDate[o.appointmentDate].push(o);
+    });
+    var dates=Object.keys(byDate).sort().reverse();
+    if(dates.length===0){ document.getElementById('historyList').innerHTML='<div class="empty">No history</div>'; return; }
+    var html='';
+    dates.forEach(function(d){
+        html+='<div class="history-date">'+d+'</div>';
+        byDate[d].forEach(function(o,i){
+            var stCls=o.orderStatus==='done'?'st-complete':'st-paused';
+            var stText=o.orderStatus==='done'?'DONE':'PAUSED';
+            html+='<div class="order-card '+(o.orderStatus==='done'?'done':'paused')+'">';
+            html+='<div class="order-top"><div class="order-id">'+escapeHtml(o.jobId||'N/A')+'</div>';
+            html+='<span class="order-status '+stCls+'">'+stText+'</span></div>';
+            html+='<div class="order-grid">';
+            html+=field('Grid',o.grid)+field('Service #',o.serviceNumber)+field('BSN',o.bsn)+field('Contact',o.contact)+field('Phone',o.phone);
+            html+='</div>';
+            if(o.fare) html+='<div class="order-meta"><span>Fare: $'+o.fare+'</span></div>';
+            html+='<div class="order-actions"><button class="btn-restore" onclick="restoreOrder(\''+o.jobId+'\',\''+o.serviceNumber+'\',\''+o.appointmentDate+'\')">Restore</button>';
+            html+='<button class="btn-del" onclick="deleteOrder(\''+o.jobId+'\',\''+o.serviceNumber+'\',\''+o.appointmentDate+'\')">Delete</button></div>';
+            html+='</div>';
+        });
+    });
+    document.getElementById('historyList').innerHTML=html;
+}
+
+function restoreOrder(jobId,sn,date){
+    var orders=getOrders();
+    orders.forEach(function(o){
+        if(o.jobId===jobId && o.serviceNumber===sn && o.appointmentDate===date){ o.orderStatus='active'; }
+    });
+    saveOrders(orders); renderHistory(); showToast('Restored');
+}
+
+function deleteOrder(jobId,sn,date){
+    if(!confirm('Delete this order?')) return;
+    var orders=getOrders().filter(function(o){ return !(o.jobId===jobId && o.serviceNumber===sn && o.appointmentDate===date); });
+    saveOrders(orders); renderHistory(); showToast('Deleted');
+}
+
+/* ===== EXTRACT ===== */
+var knownLabels = {
+    'job id':'job id','jobid':'job id',
+    'exchange / grid':'exchange / grid','grid':'grid',
+    'bsn':'bsn','bsn.':'bsn',
+    'service number':'service number','service #':'service number',
+    'appointment date':'appointment date',
+    'appointment time':'appointment time',
+    'status':'status',
+    'pid desc':'pid desc','pid':'pid desc',
+    'a end address':'a end address','address':'a end address',
+    'address showmap':'a end address',
+    'contact name':'contact name',
+    'contact no.':'contact no.','contact no':'contact no.',
+    'contact mobile':'contact mobile'
+};
+
+function extractEnglish(text){
+    var fields={}, lines=text.split('\n'), i=0;
+    while(i<lines.length){
+        var line=lines[i].trim();
+        if(!line){i++;continue;}
+        var m=line.match(/^([A-Za-z][A-Za-z \/()#&]+?)\s*[:\uff1a]\s*(.*)/);
+        if(m && m[2].trim()){
+            var k=m[1].trim().toLowerCase();
+            if(knownLabels[k]) fields[knownLabels[k]]=m[2].trim();
+            i++;continue;
+        }
+        var lk=line.toLowerCase();
+        if(knownLabels[lk] && !fields[knownLabels[lk]]){
+            var j=i+1;
+            while(j<lines.length && !lines[j].trim()) j++;
+            if(j<lines.length){
+                var nxt=lines[j].trim();
+                if(!knownLabels[nxt.toLowerCase()]){ fields[knownLabels[lk]]=nxt; i=j; }
+            }
+        }
+        i++;
+    }
+    var cName=fields['contact name']||'';
+    var cNo=fields['contact no.']||'';
+    var cMob=fields['contact mobile']||'';
+    if((!cNo||!/\d{4}/.test(cNo)) && cMob && /\d{4}/.test(cMob)) cNo=cMob;
+    if(cName) cName=cName.replace(/\s*(?:Contact(?:\s+(?:Mobile|No\.?|Number|Tel|Phone))?)$/i,'').trim();
+    if(cName) cName=cName.replace(/\s*(?:Mobile|No\.?|Number|Tel|Phone)$/i,'').trim();
+
+    return {
+        jobId:fields['job id']||null, grid:fields['exchange / grid']||null,
+        serviceNumber:fields['service number']||null, bsn:fields['bsn']||null,
+        address:fields['a end address']||null,
+        appointmentDate:fields['appointment date']||null, time:fields['appointment time']||null,
+        contact:cName||null, phone:cNo||null,
+        status:fields['status']||null, pidDesc:fields['pid desc']||null
+    };
+}
+
+function doExtract(){
+    var text=document.getElementById('inputText').value.trim();
+    if(!text){showToast('Please paste work order');return;}
+    var data=extractEnglish(text);
+    if(!data.jobId && !data.serviceNumber && !data.address){showToast('Cannot extract data');return;}
+    var box=document.getElementById('resultBox');
+    box.style.display='block';
+    var items=[
+        ['Job ID',data.jobId],['Grid',data.grid],['Service #',data.serviceNumber],['BSN',data.bsn],
+        ['Address',data.address],['Date',data.appointmentDate],['Time',data.time],
+        ['Contact',data.contact],['Phone',data.phone],['Status',data.status],['PID',data.pidDesc]
+    ];
+    var html='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><strong>Extract Result</strong><button onclick="saveResult()" style="padding:6px 16px;border:none;border-radius:8px;background:#667eea;color:#fff;font-weight:700;cursor:pointer;font-size:13px">Save</button></div>';
+    items.forEach(function(it){
+        html+='<div class="result-item"><span class="result-label">'+it[0]+'</span><span class="result-value">'+escapeHtml(it[1]||'(N/A)')+'</span></div>';
+    });
+    box.innerHTML=html;
+    box.dataset.data=JSON.stringify(data);
+}
+
+function saveResult(){
+    var box=document.getElementById('resultBox');
+    var data=JSON.parse(box.dataset.data);
+    if(!data) return;
+    var orders=getOrders();
+    var dup=orders.some(function(o){return o.jobId===data.jobId&&o.serviceNumber===data.serviceNumber&&o.appointmentDate===data.appointmentDate;});
+    if(dup){showToast('Already saved');return;}
+    data.orderStatus='active';
+    data.fare='';
+    orders.push(data);
+    saveOrders(orders);
+    showToast('Saved!');
+    if(data.appointmentDate){ selectedDate=data.appointmentDate; }
+    switchTab('home');
+}
+
+function clearInput(){ document.getElementById('inputText').value=''; document.getElementById('resultBox').style.display='none'; }
+
+function showToast(msg){ var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},2000); }
+
+renderHome();
 </script>
 </body>
 </html>
