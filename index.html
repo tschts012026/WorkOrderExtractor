@@ -218,18 +218,10 @@
             const tmr = new Date(today); tmr.setDate(tmr.getDate()+1);
             const tmrStr = formatDateObj(tmr);
 
-            // Always show today + tomorrow + any dates with orders
+            // Only show today + tomorrow
             let html = '';
             html += `<button class="date-chip today ${selectedDate === todayStr ? 'active' : ''}" onclick="selectDate('${todayStr}')">🔴 今日 ${todayStr}</button>`;
             html += `<button class="date-chip tomorrow ${selectedDate === tmrStr ? 'active' : ''}" onclick="selectDate('${tmrStr}')">🟠 明日 ${tmrStr}</button>`;
-
-            // Other dates sorted
-            const otherDates = [...dateSet].filter(d => d !== todayStr && d !== tmrStr).sort().reverse();
-            otherDates.forEach(d => {
-                const wd = getWeekday(d);
-                const count = saved.filter(s => s.appointmentDate === d).length;
-                html += `<button class="date-chip ${selectedDate === d ? 'active' : ''}" onclick="selectDate('${d}')">${d} ${wd} (${count})</button>`;
-            });
 
             // If no date selected, default to today
             if (!selectedDate && dateSet.size > 0) selectedDate = todayStr;
