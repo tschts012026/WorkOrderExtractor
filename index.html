@@ -551,71 +551,54 @@ function saveOrders(orders) { localStorage.setItem('wfm_orders', JSON.stringify(
         function extractEnglish(text) {
             var fields = {};
             var lines = text.split('\n');
-            var i = 0;
-            while (i < lines.length) {
+            // Known field labels (case-insensitive matching)
+            var knownLabels = {
+                'job id': 'job id', 'jobid': 'job id',
+                'exchange / grid': 'exchange / grid', 'grid': 'grid',
+                'service number': 'service number', 'service #': 'service number',
+                'appointment date': 'appointment date',
+                'appointment time': 'appointment time',
+                'status': 'status',
+                'pid desc': 'pid desc', 'pid': 'pid desc',
+                'a end address': 'a end address', 'address': 'address',
+                'contact name': 'contact name',
+                'contact no.': 'contact no.', 'contact no': 'contact no.',
+                'contact no. ': 'contact no.'
+            };
+            for (var i = 0; i < lines.length; i++) {
                 var line = lines[i].trim();
-                if (!line) { i++; continue; }
-                // Try "Label: Value" on same line
+                if (!line) continue;
+                // Try "Label: Value" same line
                 var m = line.match(/^([A-Za-z][A-Za-z \/\(\)]+?)\s*[:\uff1a]\s*(.*)/);
                 if (m && m[1]) {
                     var k = m[1].trim().toLowerCase();
                     var v = m[2].trim();
                     if (v) fields[k] = v;
-                    else {
-                        // Value might be on next line(s)
-                        var j = i + 1;
-                        while (j < lines.length && !lines[j].trim()) j++;
-                        if (j < lines.length) {
-                            var nv = lines[j].trim();
-                            // Don't consume if it looks like a new label
-                            if (!nv.match(/^[A-Za-z][A-Za-z \/\(\)]+?\s*[:\uff1a]/)) {
-                                fields[k] = nv;
-                                i = j;
-                            }
-                        }
-                    }
-                    i++;
+                    else { var j=i+1; while(j<lines.length&&!lines[j].trim())j++; if(j<lines.length){fields[k]=lines[j].trim();i=j;} }
                     continue;
                 }
-                // Standalone label: check if next line is value
-                if (/^[A-Za-z][A-Za-z \/\(\)]+$/.test(line)) {
-                    var k2 = line.trim().toLowerCase();
-                    if (!fields[k2]) {
-                        var j2 = i + 1;
-                        while (j2 < lines.length && !lines[j2].trim()) j2++;
-                        if (j2 < lines.length) {
-                            var nv2 = lines[j2].trim();
-                            if (!nv2.match(/^[A-Za-z][A-Za-z \/\(\)]+$/)) {
-                                fields[k2] = nv2;
-                                i = j2;
-                            }
-                        }
-                    }
-                    i++;
-                    continue;
+                // Check if this line is a known label
+                var lk = line.trim().toLowerCase();
+                if (knownLabels[lk] && !fields[knownLabels[lk]]) {
+                    var j2=i+1; while(j2<lines.length&&!lines[j2].trim())j2++;
+                    if(j2<lines.length){fields[knownLabels[lk]]=lines[j2].trim();i=j2;}
                 }
-                i++;
             }
             // Build result
-            var jobId = fields['job id'] || null;
-            var grid  = fields['exchange / grid'] || fields['grid'] || null;
-            var svc   = fields['service number'] || null;
-            var addr  = fields['a end address'] || fields['address'] || null;
-            var appt  = fields['appointment date'] || null;
-            var time  = fields['appointment time'] || null;
-            var status= fields['status'] || null;
-            var pid   = fields['pid desc'] || fields['pid'] || null;
-            var cName = fields['contact name'] || null;
-            var cNo   = fields['contact no.'] || fields['contact no'] || fields['contact no'] || null;
-            var contactDisplay = '';
-            if (cName && cNo) contactDisplay = cName + ' ' + cNo;
-            else if (cName) contactDisplay = cName;
-            else if (fields['contact']) contactDisplay = fields['contact'];
+            var cName = fields['contact name'];
+            var cNo   = fields['contact no.'] || fields['contact no'] || fields['contact no'];
+            var contactDisplay = (cName && cNo) ? (cName + ' ' + cNo) : (cName || '');
             return {
-                jobId: jobId, grid: grid, serviceNumber: svc,
-                address: addr, appointmentDate: appt, time: time,
-                contact: contactDisplay, phone: cNo,
-                status: status, pidDesc: pid
+                jobId: fields['job id'],
+                grid: fields['exchange / grid'] || fields['grid'],
+                serviceNumber: fields['service number'],
+                address: fields['a end address'] || fields['address'],
+                appointmentDate: fields['appointment date'],
+                time: fields['appointment time'],
+                contact: contactDisplay,
+                phone: cNo,
+                status: fields['status'],
+                pidDesc: fields['pid desc']
             };
         }
         function extractName(text) {
