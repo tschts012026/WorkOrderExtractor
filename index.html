@@ -567,6 +567,8 @@ function saveOrders(orders) { localStorage.setItem('wfm_orders', JSON.stringify(
                 'address showmap': 'a end address',
                 'address': 'a end address',
                 'contact mobile': 'contact mobile',
+                'bsn': 'bsn',
+                'bsn.': 'bsn',
             };
             for (var i = 0; i < lines.length; i++) {
                 var line = lines[i].trim();
@@ -588,6 +590,7 @@ function saveOrders(orders) { localStorage.setItem('wfm_orders', JSON.stringify(
                 }
             }
             // Build result
+            var bsnVal  = fields['bsn'] || '(N/A)';
             var cName = fields['contact name'];
             var cNo   = fields['contact no.'] || fields['contact no'] || fields['contact no'];
             var cMob  = fields['contact mobile'];
