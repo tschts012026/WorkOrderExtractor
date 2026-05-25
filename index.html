@@ -34,6 +34,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 .irow{display:flex;align-items:center;gap:6px;width:100%;margin-bottom:3px}
 .irow input{flex:1;padding:4px 8px;border:1px solid #ddd;border-radius:8px;font-size:12px}
 .imeta{font-size:11px;color:#999;margin-top:2px}
+.mbtn{display:flex;gap:4px;margin-top:4px}
+.mbtn button{flex:1;padding:5px;border:none;border-radius:8px;font-size:11px;cursor:pointer;font-weight:600}
+.bdel{background:#f8d7da;color:#dc3545}.bedit{background:#e3f2fd;color:#1565c0}
 textarea{width:100%;height:140px;border:2px solid #ddd;border-radius:12px;padding:10px;font-size:13px;font-family:monospace;resize:vertical}
 .ebtn{display:flex;gap:8px;margin-top:8px}
 .ebtn button{flex:1;padding:10px;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
@@ -172,6 +175,7 @@ function cardInner(o,full){
   }else{
     h+="<button class=\"br\" onclick=\"doMark(this,'active')\">Restore</button>";
   }
+  h+="<div class=\"mbtn\"><button class=\"bedit\" onclick=\"doEdit(this)\">Edit</button><button class=\"bdel\" onclick=\"doDelete(this)\">Delete</button></div>";
   h+="</div>";
   if(o.fare)h+="<div class=\"imeta\">Fare: $"+esc(o.fare)+(o.note?" | "+esc(o.note):"")+"</div>";
   return h;
@@ -201,6 +205,31 @@ function doMark(btn,status){
   }
   var t=btn.closest(".tab-content").id;
   if(t==="tab-home")renderHome();else if(t==="tab-all")renderAll();else renderHistory();
+}
+function doEdit(btn){
+  var act=btn.closest(".oact");var jobId=act.dataset.j,sn=act.dataset.s,date=act.dataset.d;
+  var orders=getOrders();var i=findIdx(jobId,sn,date);
+  if(i<0)return;var o=orders[i];
+  var fields=["jobId","grid","serviceNumber","bsn","address","appointmentDate","time","contact","phone","status","pidDesc"];
+  var labels=["Job ID","Grid","Svc#","BSN","Address","Date","Time","Contact","Phone","Status","PID Desc"];
+  var h="<div style='padding:10px'><b style='display:block;margin-bottom:10px'>Edit Order</b>";
+  fields.forEach(function(f,k){h+="<div style='margin-bottom:8px'><label style='font-size:12px;color:#999;display:block'>"+labels[k]+"</label><input type='text' id='ef_"+f+"' value='"+esc(o[f]||"")+"' style='width:100%;padding:6px;border:1px solid #ddd;border-radius:8px;font-size:13px'></div>";});
+  h+="<div style='display:flex;gap:8px;margin-top:10px'><button onclick='doSaveEdit(\""+jid+"\",\""+sid+"\",\""+did+"\")' style='flex:1;padding:8px;background:#667eea;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer'>Save</button><button onclick='cancelEdit()' style='flex:1;padding:8px;background:#eee;color:#666;border:none;border-radius:8px;font-weight:700;cursor:pointer'>Cancel</button></div></div>";
+  document.getElementById("editBox").innerHTML=h;document.getElementById("editBox").style.display="block";
+}
+function doSaveEdit(jobId,sn,date){
+  var orders=getOrders();var i=findIdx(jobId,sn,date);if(i<0)return;
+  var fields=["jobId","grid","serviceNumber","bsn","address","appointmentDate","time","contact","phone","status","pidDesc"];
+  fields.forEach(function(f){orders[i][f]=document.getElementById("ef_"+f).value;});
+  saveOrders(orders);document.getElementById("editBox").style.display="none";toast("Updated!");
+  var t=document.querySelector(".tab-content.active").id;if(t==="tab-home")renderHome();else if(t==="tab-all")renderAll();else renderHistory();
+}
+function cancelEdit(){document.getElementById("editBox").style.display="none";}
+function doDelete(btn){
+  if(!confirm("Delete this order?"))return;
+  var act=btn.closest(".oact");var jobId=act.dataset.j,sn=act.dataset.s,date=act.dataset.d;
+  var orders=getOrders();var i=findIdx(jobId,sn,date);if(i>=0){orders.splice(i,1);saveOrders(orders);toast("Deleted");}
+  var t=btn.closest(".tab-content").id;if(t==="tab-home")renderHome();else if(t==="tab-all")renderAll();else renderHistory();
 }
 
 function doExport(){
@@ -273,6 +302,10 @@ function doExtract(){
   items.forEach(function(it){h+="<div class=\"ri\"><span class=\"rl\">"+it[0]+"</span><span class=\"rv\">"+esc(it[1]||"(N/A)")+"</span></div>";});
   box.innerHTML=h;box.dataset.data=JSON.stringify(data);
 }
+
+<div id="editBox" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1000;overflow:auto">
+<div style="background:#fff;margin:10% auto;max-width:400px;border-radius:12px;max-height:90vh;overflow-y:auto"></div>
+</div>
 
 function saveResult(){
   var box=document.getElementById("resultBox");var data=JSON.parse(box.dataset.data);if(!data)return;
