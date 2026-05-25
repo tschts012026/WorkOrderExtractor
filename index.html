@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WFM 工單管家 v6</title>
+    <title>WFM 工單管家 v6.3</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -38,11 +38,7 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* Date bar */
-        .date-bar {
-            display: flex; align-items: center; gap: 8px;
-            margin-bottom: 10px;
-        }
+        .date-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
         .date-chip {
             padding: 5px 12px; border-radius: 20px; font-size: 13px;
             font-weight: 600; cursor: pointer; border: 2px solid #e0e0e0;
@@ -58,8 +54,12 @@
             background: #f0f4ff; border-radius: 10px; padding: 8px 12px;
             margin-bottom: 10px; font-size: 13px; color: #667eea; font-weight: 600;
         }
+        .date-group-header {
+            background: #667eea; color: white; border-radius: 10px; padding: 10px 14px;
+            margin-bottom: 10px; font-size: 14px; font-weight: 700; cursor: pointer;
+        }
+        .date-group-header:hover { opacity: 0.9; }
 
-        /* Order cards */
         .order-card {
             background: #f9f9f9; border-radius: 12px; padding: 12px;
             margin-bottom: 8px; border-left: 4px solid #667eea;
@@ -75,8 +75,11 @@
         }
         .order-card .order-body { font-size: 12px; color: #555; line-height: 1.7; }
         .order-card .phone-link { color: #667eea; text-decoration: none; font-weight: 600; }
+        .order-card.done { border-left-color: #27ae60; opacity: 0.7; }
+        .order-card.paused { border-left-color: #f39c12; opacity: 0.7; }
+        .badge-done { background: #27ae60; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+        .badge-paused { background: #f39c12; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
 
-        /* Fare + action row */
         .order-actions {
             display: flex; align-items: center; gap: 6px;
             margin-top: 8px; padding-top: 8px; border-top: 1px solid #e0e0e0;
@@ -98,13 +101,6 @@
         .btn-pause { background: #f39c12; }
         .btn-undo { background: #95a5a6; }
 
-        /* Completed/paused cards in history */
-        .order-card.done { border-left-color: #27ae60; opacity: 0.7; }
-        .order-card.paused { border-left-color: #f39c12; opacity: 0.7; }
-        .badge-done { background: #27ae60; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-        .badge-paused { background: #f39c12; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
-
-        /* Extract tab */
         .input-section { margin-bottom: 12px; }
         .input-section label { display: block; margin-bottom: 6px; font-weight: 600; color: #333; font-size: 13px; }
         textarea {
@@ -145,7 +141,6 @@
         }
         .empty-msg { color: #999; text-align: center; padding: 25px; font-size: 14px; }
 
-        /* History section */
         .history-section { margin-top: 15px; }
         .history-toggle {
             background: #f5f5f5; border: none; padding: 8px 14px;
@@ -169,18 +164,17 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📋 WFM 工單管家</h1>
+            <h1>WFM 工單管家</h1>
             <p>提取 → 儲存 → 按日做 → 記車錢</p>
         </div>
         <div class="content">
             <div class="tab-bar">
-                <button class="active" onclick="switchTab('home', this)">🏠 今日工作</button>
-                <button onclick="switchTab('extract', this)">📝 提取</button>
-                <button onclick="switchTab('history', this)">📦 歷史</button>
-                <button onclick="switchTab('alldates', this)">📅 全部</button>
+                <button class="active" onclick="switchTab('home', this)">今日工作</button>
+                <button onclick="switchTab('extract', this)">提取</button>
+                <button onclick="switchTab('history', this)">歷史</button>
+                <button onclick="switchTab('alldates', this)">全部</button>
             </div>
 
-            <!-- HOME TAB -->
             <div id="tab-home" class="tab-content active">
                 <div class="date-bar" id="dateBar"></div>
                 <div class="date-summary" id="dateSummary"></div>
@@ -188,262 +182,256 @@
                 <div id="dayHistory" class="history-section"></div>
             </div>
 
-            <!-- EXTRACT TAB -->
             <div id="tab-extract" class="tab-content">
                 <div class="input-section">
-                    <label>📝 貼入工單內容：</label>
-                    <textarea id="inputText" placeholder="貼入工單 raw text...&#10;&#10;例如：&#10;Job ID: 7766370&#10;Grid: FTH&#10;Service Number: 063497&#10;Contact: Ms Kwok 27450670"></textarea>
+                    <label>貼入工單內容：</label>
+                    <textarea id="inputText" placeholder="貼入工單 raw text..."></textarea>
                 </div>
                 <div class="button-group">
-                    <button class="btn-primary" onclick="extractData()">🚀 提取資料</button>
-                    <button class="btn-secondary" onclick="clearAll()">🗑️ 清除</button>
+                    <button class="btn-primary" onclick="extractData()">提取資料</button>
+                    <button class="btn-secondary" onclick="clearAll()">清除</button>
                 </div>
                 <div class="result-section" id="resultSection">
                     <div class="result-card">
-                        <h3>✅ 提取結果</h3>
+                        <h3>提取結果</h3>
                         <div id="resultContent"></div>
                         <div class="result-actions">
-                            <button class="result-btn" style="background:#667eea;" onclick="copyResult()">📋 複製</button>
-                            <button class="result-btn" style="background:#27ae60;flex:1;" onclick="saveResult()">💾 儲存</button>
+                            <button class="result-btn" style="background:#667eea;" onclick="copyResult()">複製</button>
+                            <button class="result-btn" style="background:#27ae60;flex:1;" onclick="saveResult()">儲存</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- ALL DATES TAB -->
-            <div id="tab-alldates" class="tab-content">
-                <div id="allDatesList"></div>
-            </div>
-
-            <!-- HISTORY TAB -->
             <div id="tab-history" class="tab-content">
                 <div id="historyList"></div>
+            </div>
+
+            <div id="tab-alldates" class="tab-content">
+                <div id="allDatesList"></div>
             </div>
         </div>
     </div>
     <div class="toast" id="toast"></div>
 
     <script>
-        let lastResult = null;
-        let selectedDate = null;
+        var lastResult = null;
+        var selectedDate = null;
 
         function switchTab(tab, btn) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-bar button').forEach(el => el.classList.remove('active'));
-            document.getElementById('tab-' + tab).classList.add('active');
-            btn.classList.add('active');
-            if (tab === 'home') renderHome();
-            if (tab === 'history') renderHistory();
-            if (tab === 'alldates') renderAllDates();
+            try {
+                var contents = document.querySelectorAll('.tab-content');
+                for (var i = 0; i < contents.length; i++) contents[i].classList.remove('active');
+                var buttons = document.querySelectorAll('.tab-bar button');
+                for (var j = 0; j < buttons.length; j++) buttons[j].classList.remove('active');
+                document.getElementById('tab-' + tab).classList.add('active');
+                if (btn) btn.classList.add('active');
+                if (tab === 'home') renderHome();
+                if (tab === 'history') renderHistory();
+                if (tab === 'alldates') renderAllDates();
+            } catch(e) {
+                alert('Tab error: ' + e.message);
+            }
         }
 
-        function getOrders() { return JSON.parse(localStorage.getItem('wfm_orders') || '[]'); }
+        function getOrders() {
+            try {
+                var data = localStorage.getItem('wfm_orders');
+                if (!data) return [];
+                return JSON.parse(data);
+            } catch(e) {
+                return [];
+            }
+        }
         function saveOrders(orders) { localStorage.setItem('wfm_orders', JSON.stringify(orders)); }
 
-        // ===== HOME TAB =====
-        function renderHome() {
-            renderDateBar();
-            renderDayOrders();
-        }
+        function renderHome() { renderDateBar(); renderDayOrders(); }
 
         function renderDateBar() {
-            const today = new Date();
-            const todayStr = formatDateObj(today);
-            const tmr = new Date(today); tmr.setDate(tmr.getDate()+1);
-            const tmrStr = formatDateObj(tmr);
+            var today = new Date();
+            var todayStr = formatDateObj(today);
+            var tmr = new Date(today); tmr.setDate(tmr.getDate() + 1);
+            var tmrStr = formatDateObj(tmr);
             if (!selectedDate) selectedDate = todayStr;
-
-            let html = '';
-            html += `<button class="date-chip today ${selectedDate === todayStr ? 'active' : ''}" onclick="selectDate('${todayStr}')">🔴 今日 ${todayStr}</button>`;
-            html += `<button class="date-chip tomorrow ${selectedDate === tmrStr ? 'active' : ''}" onclick="selectDate('${tmrStr}')">🟠 明日 ${tmrStr}</button>`;
+            var html = '';
+            html += '<button class="date-chip today' + (selectedDate === todayStr ? ' active' : '') + '" onclick="selectDate(\'' + todayStr + '\')">今日 ' + todayStr + '</button>';
+            html += '<button class="date-chip tomorrow' + (selectedDate === tmrStr ? ' active' : '') + '" onclick="selectDate(\'' + tmrStr + '\')">明日 ' + tmrStr + '</button>';
             document.getElementById('dateBar').innerHTML = html;
         }
 
         function selectDate(d) { selectedDate = d; renderHome(); }
 
         function renderDayOrders() {
-            const orders = getOrders();
-            const todayStr = formatDateObj(new Date());
-            const displayDate = selectedDate || todayStr;
-            const dayOrders = orders.filter(s => s.appointmentDate === displayDate);
-            const active = dayOrders.filter(s => !s.orderStatus || s.orderStatus === 'active');
-            const completed = dayOrders.filter(s => s.orderStatus === 'done');
-            const paused = dayOrders.filter(s => s.orderStatus === 'paused');
-
-            const wd = getWeekday(displayDate);
-            const isToday = displayDate === todayStr;
+            var orders = getOrders();
+            var todayStr = formatDateObj(new Date());
+            var displayDate = selectedDate || todayStr;
+            var dayOrders = orders.filter(function(s) { return s.appointmentDate === displayDate; });
+            var active = dayOrders.filter(function(s) { return !s.orderStatus || s.orderStatus === 'active'; });
+            var completed = dayOrders.filter(function(s) { return s.orderStatus === 'done'; });
+            var paused = dayOrders.filter(function(s) { return s.orderStatus === 'paused'; });
+            var wd = getWeekday(displayDate);
+            var isToday = displayDate === todayStr;
             document.getElementById('dateSummary').innerHTML =
-                `📅 ${displayDate} ${wd}${isToday ? ' 🔴今日' : ''}　—　${active.length} 單待做` +
-                (completed.length + paused.length > 0 ? ` ｜ ✅${completed.length} ⏸${paused.length}` : '');
-
-            const container = document.getElementById('dayOrders');
+                displayDate + ' ' + wd + (isToday ? ' 今日' : '') + ' \u2014 ' + active.length + ' 單待做' +
+                (completed.length + paused.length > 0 ? ' | 完成' + completed.length + ' 暫停' + paused.length : '');
+            var container = document.getElementById('dayOrders');
             if (!active.length && !completed.length && !paused.length) {
-                container.innerHTML = '<div class="empty-msg">呢日冇工單 🎉</div>';
+                container.innerHTML = '<div class="empty-msg">呢日冇工單</div>';
                 document.getElementById('dayHistory').innerHTML = '';
                 return;
             }
-
-            // Active orders
-            container.innerHTML = active.length ? active.map((s, i) => renderOrderCard(s, i, true)).join('') :
-                '<div class="empty-msg">全部搞掂晒！🎉</div>';
-
-            // Completed/paused history
-            const histOrders = [...completed, ...paused];
-            const histHtml = histOrders.length ? `
-                <button class="history-toggle" onclick="this.nextElementSibling.classList.toggle('show')">
-                    📦 已處理（${completed.length}完成 / ${paused.length}暫停）▼
-                </button>
-                <div class="history-list">
-                    ${histOrders.map((s, i) => renderOrderCard(s, i, false)).join('')}
-                </div>
-            ` : '';
+            if (active.length) {
+                container.innerHTML = '';
+                for (var i = 0; i < active.length; i++) container.innerHTML += renderOrderCard(active[i], i, true);
+            } else {
+                container.innerHTML = '<div class="empty-msg">全部搞掂晒！</div>';
+            }
+            var histOrders = completed.concat(paused);
+            var histHtml = '';
+            if (histOrders.length) {
+                histHtml = '<button class="history-toggle" onclick="this.nextElementSibling.classList.toggle(\'show\')">已處理（' + completed.length + '完成 / ' + paused.length + '暫停）</button><div class="history-list">';
+                for (var k = 0; k < histOrders.length; k++) histHtml += renderOrderCard(histOrders[k], k, false);
+                histHtml += '</div>';
+            }
             document.getElementById('dayHistory').innerHTML = histHtml;
         }
 
         function renderOrderCard(s, i, isActive) {
-            const statusClass = s.orderStatus === 'done' ? 'done' : s.orderStatus === 'paused' ? 'paused' : '';
-            const badge = s.orderStatus === 'done' ? '<span class="badge-done">✅ 完成</span>' :
-                          s.orderStatus === 'paused' ? '<span class="badge-paused">⏸ 暫停</span>' :
-                          `<span class="order-status-badge">${s.status || '待做'}</span>`;
-
-            const fareDisplay = s.fare ? `<div>🚗 車錢：$${s.fare}</div>` : '';
-
-            let actions = '';
+            var statusClass = s.orderStatus === 'done' ? 'done' : s.orderStatus === 'paused' ? 'paused' : '';
+            var badge = s.orderStatus === 'done' ? '<span class="badge-done">完成</span>' :
+                              s.orderStatus === 'paused' ? '<span class="badge-paused">暫停</span>' :
+                              '<span class="order-status-badge">' + (s.status || '待做') + '</span>';
+            var fareDisplay = s.fare ? '<div>車錢：$' + s.fare + '</div>' : '';
+            var actions = '';
             if (isActive) {
-                actions = `
-                <div class="order-actions">
-                    <span class="fare-label">🚗 車錢 $</span>
-                    <input class="fare-input" type="number" min="0" step="0.5"
-                           placeholder="0" value="${s.fare || ''}"
-                           onchange="updateFare('${s.jobId}', this.value)">
-                    <button class="action-btn btn-done" onclick="markOrder('${s.jobId}','done')">✅ 完成</button>
-                    <button class="action-btn btn-pause" onclick="markOrder('${s.jobId}','paused')">⏸ 暫停</button>
-                </div>`;
+                actions = '<div class="order-actions"><span class="fare-label">車錢 $</span><input class="fare-input" type="number" min="0" step="0.5" placeholder="0" value="' + (s.fare || '') + '" onchange="updateFare(\'' + s.jobId + '\', this.value)"><button class="action-btn btn-done" onclick="markOrder(\'' + s.jobId + '\',\'done\')">完成</button><button class="action-btn btn-pause" onclick="markOrder(\'' + s.jobId + '\',\'paused\')">暫停</button></div>';
             } else {
-                actions = `
-                <div class="order-actions">
-                    <button class="action-btn btn-undo" onclick="markOrder('${s.jobId}','active')">↩️ 恢復</button>
-                    ${!s.fare ? `<span class="fare-label">🚗 車錢 $</span><input class="fare-input" type="number" min="0" step="0.5" placeholder="0" onchange="updateFare('${s.jobId}', this.value)">` : ''}
-                </div>`;
+                actions = '<div class="order-actions"><button class="action-btn btn-undo" onclick="markOrder(\'' + s.jobId + '\',\'active\')">恢復</button>' + (!s.fare ? '<span class="fare-label">車錢 $</span><input class="fare-input" type="number" min="0" step="0.5" placeholder="0" onchange="updateFare(\'' + s.jobId + '\', this.value)">' : '') + '</div>';
             }
-
-            return `
-            <div class="order-card ${statusClass}">
-                <div class="order-header">
-                    <span class="order-id">#${s.jobId}</span>
-                    <span>${badge}</span>
-                </div>
-                <div class="order-body">
-                    <div>📍 ${s.grid || ''} | 🔧 ${s.serviceNumber || ''}</div>
-                    <div>🏠 ${s.address || ''}</div>
-                    <div>⏰ ${s.time || ''}</div>
-                    <div>👤 ${s.contact || ''} ${s.phone ? `<a class="phone-link" href="tel:${s.phone}">📞 ${s.phone}</a>` : ''}</div>
-                    <div>📝 ${s.pidDesc || ''}</div>
-                    ${fareDisplay}
-                </div>
-                ${actions}
-            </div>`;
+            return '<div class="order-card ' + statusClass + '"><div class="order-header"><span class="order-id">#' + s.jobId + '</span><span>' + badge + '</span></div><div class="order-body"><div>' + (s.grid || '') + ' | ' + (s.serviceNumber || '') + '</div><div>' + (s.address || '') + '</div><div>' + (s.time || '') + '</div><div>' + (s.contact || '') + ' ' + (s.phone ? '<a class="phone-link" href="tel:' + s.phone + '">' + s.phone + '</a>' : '') + '</div><div>' + (s.pidDesc || '') + '</div>' + fareDisplay + '</div>' + actions + '</div>';
         }
 
         function updateFare(jobId, value) {
-            const orders = getOrders();
-            const o = orders.find(s => s.jobId === jobId);
-            if (o) { o.fare = value || null; saveOrders(orders); }
-        }
-
-        function markOrder(jobId, status) {
-            const orders = getOrders();
-            const o = orders.find(s => s.jobId === jobId);
-            if (o) {
-                o.orderStatus = status;
-                if (status === 'done' || status === 'paused') {
-                    o.completedAt = new Date().toLocaleString('zh-TW');
-                } else {
-                    o.completedAt = null;
-                }
-                saveOrders(orders);
-                renderHome();
-                showToast(status === 'done' ? '✅ 已完成！' : status === 'paused' ? '⏸ 已暫停' : '↩️ 已恢復');
+            var orders = getOrders();
+            for (var i = 0; i < orders.length; i++) {
+                if (orders[i].jobId === jobId) { orders[i].fare = value || null; saveOrders(orders); return; }
             }
         }
 
-        // ===== HISTORY TAB =====
-        function renderHistory() {
-            const orders = getOrders();
-            const done = orders.filter(s => s.orderStatus === 'done');
-            const paused = orders.filter(s => s.orderStatus === 'paused');
+        function markOrder(jobId, status) {
+            var orders = getOrders();
+            for (var i = 0; i < orders.length; i++) {
+                if (orders[i].jobId === jobId) {
+                    orders[i].orderStatus = status;
+                    if (status === 'done' || status === 'paused') {
+                        orders[i].completedAt = new Date().toLocaleString('zh-TW');
+                    } else {
+                        orders[i].completedAt = null;
+                    }
+                    saveOrders(orders);
+                    renderHome();
+                    showToast(status === 'done' ? '已完成！' : status === 'paused' ? '已暫停' : '已恢復');
+                    return;
+                }
+            }
+        }
 
+        function renderHistory() {
+            var orders = getOrders();
+            var done = orders.filter(function(s) { return s.orderStatus === 'done'; });
+            var paused = orders.filter(function(s) { return s.orderStatus === 'paused'; });
             if (!done.length && !paused.length) {
                 document.getElementById('historyList').innerHTML = '<div class="empty-msg">暫無歷史記錄</div>';
                 return;
             }
-
-            // Group by date
-            const groups = {};
-            [...done, ...paused].forEach(s => {
-                const k = s.appointmentDate || '未指定日期';
+            var groups = {};
+            var all = done.concat(paused);
+            for (var i = 0; i < all.length; i++) {
+                var k = all[i].appointmentDate || '未指定日期';
                 if (!groups[k]) groups[k] = [];
-                groups[k].push(s);
-            });
-            const sortedKeys = Object.keys(groups).sort((a, b) => {
+                groups[k].push(all[i]);
+            }
+            var sortedKeys = Object.keys(groups).sort(function(a, b) {
                 if (a === '未指定日期') return 1;
                 if (b === '未指定日期') return -1;
                 return b.localeCompare(a);
             });
-
-            // Total fare
-            const totalFare = done.reduce((sum, s) => sum + (parseFloat(s.fare) || 0), 0);
-
-            let html = `<div class="date-summary">💰 總車錢：$${totalFare.toFixed(1)}（${done.length}單已完成）</div>`;
-            sortedKeys.forEach(dateKey => {
-                const gOrders = groups[dateKey];
-                const dayFare = gOrders.filter(s => s.orderStatus === 'done').reduce((sum, s) => sum + (parseFloat(s.fare) || 0), 0);
-                const wd = dateKey !== '未指定日期' ? getWeekday(dateKey) : '';
-                html += `<div class="date-summary">📅 ${dateKey} ${wd} — 車錢 $${dayFare.toFixed(1)}</div>`;
-                gOrders.forEach((s, i) => { html += renderOrderCard(s, i, false); });
-            });
+            var totalFare = 0;
+            for (var j = 0; j < done.length; j++) totalFare += (parseFloat(done[j].fare) || 0);
+            var html = '<div class="date-summary">總車錢：$' + totalFare.toFixed(1) + '（' + done.length + '單已完成）</div>';
+            for (var m = 0; m < sortedKeys.length; m++) {
+                var gOrders = groups[sortedKeys[m]];
+                var dayFare = 0;
+                for (var n = 0; n < gOrders.length; n++) { if (gOrders[n].orderStatus === 'done') dayFare += (parseFloat(gOrders[n].fare) || 0); }
+                var wd = sortedKeys[m] !== '未指定日期' ? getWeekday(sortedKeys[m]) : '';
+                html += '<div class="date-summary">' + sortedKeys[m] + ' ' + wd + ' \u2014 車錢 $' + dayFare.toFixed(1) + '</div>';
+                for (var p = 0; p < gOrders.length; p++) html += renderOrderCard(gOrders[p], p, false);
+            }
             document.getElementById('historyList').innerHTML = html;
         }
 
-        // ===== ALL DATES TAB =====
         function renderAllDates() {
-            const orders = getOrders();
-            if (!orders.length) {
-                document.getElementById('allDatesList').innerHTML = '<div class="empty-msg">暫無工單</div>';
-                return;
+            try {
+                var orders = getOrders();
+                if (!orders.length) {
+                    document.getElementById('allDatesList').innerHTML = '<div class="empty-msg">暫無工單</div>';
+                    return;
+                }
+                // Group by appointment date
+                var groups = {};
+                for (var i = 0; i < orders.length; i++) {
+                    var k = orders[i].appointmentDate || '未指定日期';
+                    if (!groups[k]) groups[k] = [];
+                    groups[k].push(orders[i]);
+                }
+                var sortedKeys = Object.keys(groups).sort(function(a, b) {
+                    if (a === '未指定日期') return 1;
+                    if (b === '未指定日期') return -1;
+                    return b.localeCompare(a);
+                });
+                var todayStr = formatDateObj(new Date());
+                var html = '';
+                for (var j = 0; j < sortedKeys.length; j++) {
+                    var dateKey = sortedKeys[j];
+                    var gOrders = groups[dateKey];
+                    var wd = dateKey !== '未指定日期' ? getWeekday(dateKey) : '';
+                    var isToday = dateKey === todayStr;
+                    var activeCount = 0, doneCount = 0, pausedCount = 0;
+                    for (var k = 0; k < gOrders.length; k++) {
+                        if (!gOrders[k].orderStatus || gOrders[k].orderStatus === 'active') activeCount++;
+                        else if (gOrders[k].orderStatus === 'done') doneCount++;
+                        else if (gOrders[k].orderStatus === 'paused') pausedCount++;
+                    }
+                    // Date group header - clickable to go to that date in home tab
+                    html += '<div class="date-group-header" onclick="goToDate(\'' + dateKey + '\')">';
+                    html += dateKey + ' ' + wd + (isToday ? ' 今日' : '');
+                    html += ' \u2014 ' + gOrders.length + ' 單';
+                    if (activeCount) html += ' | ' + activeCount + '待做';
+                    if (doneCount) html += ' | ' + doneCount + '完成';
+                    if (pausedCount) html += ' | ' + pausedCount + '暫停';
+                    html += '</div>';
+                    // Show all order cards under this date
+                    for (var m = 0; m < gOrders.length; m++) {
+                        html += renderOrderCard(gOrders[m], m, !gOrders[m].orderStatus || gOrders[m].orderStatus === 'active');
+                    }
+                }
+                document.getElementById('allDatesList').innerHTML = html;
+            } catch(e) {
+                document.getElementById('allDatesList').innerHTML = '<div class="empty-msg">錯誤：' + e.message + '</div>';
             }
-            const groups = {};
-            orders.forEach(s => {
-                const k = s.appointmentDate || '未指定日期';
-                if (!groups[k]) groups[k] = [];
-                groups[k].push(s);
-            });
-            const sortedKeys = Object.keys(groups).sort((a, b) => {
-                if (a === '未指定日期') return 1;
-                if (b === '未指定日期') return -1;
-                return b.localeCompare(a);
-            });
-            const todayStr = formatDateObj(new Date());
-            let html = '';
-            sortedKeys.forEach(dateKey => {
-                const gOrders = groups[dateKey];
-                const wd = dateKey !== '未指定日期' ? getWeekday(dateKey) : '';
-                const isToday = dateKey === todayStr;
-                const active = gOrders.filter(s => !s.orderStatus || s.orderStatus === 'active').length;
-                const done = gOrders.filter(s => s.orderStatus === 'done').length;
-                const paused = gOrders.filter(s => s.orderStatus === 'paused').length;
-                html += `<div class="date-summary" style="cursor:pointer;" onclick="selectedDate='${dateKey}';switchTab('home',document.querySelectorAll('.tab-bar button')[0])">📅 ${dateKey} ${wd}${isToday ? ' 🔴' : ''} — ${active}待做 ✅${done} ⏸${paused}（撳入查看）</div>`;
-                gOrders.forEach((s, i) => { html += renderOrderCard(s, i, !s.orderStatus || s.orderStatus === 'active'); });
-            });
-            document.getElementById('allDatesList').innerHTML = html;
         }
 
-        // ===== EXTRACT LOGIC =====
+        function goToDate(dateKey) {
+            selectedDate = dateKey;
+            var btns = document.querySelectorAll('.tab-bar button');
+            switchTab('home', btns[0]);
+        }
+
         function extractData() {
-            const input = document.getElementById('inputText').value.trim();
-            if (!input) { showToast('⚠️ 請先貼入工單內容'); return; }
-            const isEnglish = /^(Job ID|Grid|Service|Address|Appointment|Time|Contact|Status|PID)/m.test(input);
-            let result;
+            var input = document.getElementById('inputText').value.trim();
+            if (!input) { showToast('請先貼入工單內容'); return; }
+            var isEnglish = /^(Job ID|Grid|Service|Address|Appointment|Time|Contact|Status|PID)/m.test(input);
+            var result;
             if (isEnglish) {
                 result = extractEnglish(input);
             } else {
@@ -460,24 +448,25 @@
         }
 
         function extractEnglish(text) {
-            const fields = {};
-            text.split('\n').forEach(line => {
-                const m = line.match(/^\s*([A-Za-z][A-Za-z ]+?)\s*[:]\s*(.*)/);
-                if (m) { const k = m[1].trim().toLowerCase(); const v = m[2].trim(); if (v) fields[k] = v; }
-            });
-            let contactName = null, contactPhone = null;
-            const contactRaw = fields['contact'] || null;
+            var fields = {};
+            var lines = text.split('\n');
+            for (var i = 0; i < lines.length; i++) {
+                var m = lines[i].match(/^\s*([A-Za-z][A-Za-z ]+?)\s*[:：]\s*(.*)/);
+                if (m && m[1] && m[2]) { var k = m[1].trim().toLowerCase(); var v = m[2].trim(); if (v) fields[k] = v; }
+            }
+            var contactName = null, contactPhone = null;
+            var contactRaw = fields['contact'] || null;
             if (contactRaw) {
-                const pm = contactRaw.match(/^(.+?)\s+(\d{8})\s*$/);
+                var pm = contactRaw.match(/^(.+?)\s+(\d{8})\s*$/);
                 if (pm) { contactName = pm[1].trim(); contactPhone = pm[2]; }
                 else {
-                    const pm2 = contactRaw.match(/(\d{8})/);
+                    var pm2 = contactRaw.match(/(\d{8})/);
                     if (pm2) { contactPhone = pm2[1]; contactName = contactRaw.replace(pm2[1], '').trim(); }
                     else { contactName = contactRaw; }
                 }
             }
             if (!contactPhone) {
-                const pm3 = text.match(/(?:Tel|Phone)[:\s]*(\d{8})/i);
+                var pm3 = text.match(/(?:Tel|Phone)[:：\s]*(\d{8})/i);
                 if (pm3) contactPhone = pm3[1];
             }
             return {
@@ -495,78 +484,84 @@
         }
 
         function extractName(text) {
-            const ps = [/姓名[：:]\s*([^\n]{2,20})/i, /名字[：:]\s*([^\n]{2,20})/i, /聯絡人[：:]\s*([^\n]{2,20})/i];
-            for (const p of ps) { const m = text.match(p); if (m && m[1]) return m[1].trim(); }
+            var patterns = [/姓名[：:]\s*([^\n]{2,20})/i, /名字[：:]\s*([^\n]{2,20})/i, /聯絡人[：:]\s*([^\n]{2,20})/i];
+            for (var i = 0; i < patterns.length; i++) { var m = text.match(patterns[i]); if (m && m[1]) return m[1].trim(); }
             return null;
         }
         function extractPhone(text) {
-            const ps = [/電話[：:]\s*([0-9\-\s]{8,15})/i, /([0-9]{4}[-\s]?[0-9]{4})/, /([0-9]{8})/];
-            for (const p of ps) { const m = text.match(p); if (m && m[1]) return m[1].trim(); }
+            var patterns = [/電話[：:]\s*([0-9\-\s]{8,15})/i, /([0-9]{4}[-\s]?[0-9]{4})/, /([0-9]{8})/];
+            for (var i = 0; i < patterns.length; i++) { var m = text.match(patterns[i]); if (m && m[1]) return m[1].trim(); }
             return null;
         }
         function extractAddress(text) {
-            const ps = [/地址[：:]\s*([^\n]{5,100})/i, /(香港[^\n]{5,100})/i, /(九龍[^\n]{5,100})/i, /(新界[^\n]{5,100})/i];
-            for (const p of ps) { const m = text.match(p); if (m && m[1]) return m[1].trim(); }
+            var patterns = [/地址[：:]\s*([^\n]{5,100})/i, /(香港[^\n]{5,100})/i, /(九龍[^\n]{5,100})/i, /(新界[^\n]{5,100})/i];
+            for (var i = 0; i < patterns.length; i++) { var m = text.match(patterns[i]); if (m && m[1]) return m[1].trim(); }
             return null;
         }
 
         function displayResult(result) {
-            const fields = [
-                ['🔢 Job ID', 'jobId'], ['📍 Grid', 'grid'],
-                ['🔧 Service #', 'serviceNumber'], ['🏠 Address', 'address'],
-                ['📅 Date', 'appointmentDate'], ['⏰ Time', 'time'],
-                ['👤 Contact', 'contact'], ['📞 Phone', 'phone'],
-                ['📌 Status', 'status'], ['📝 PID Desc', 'pidDesc']
+            var fields = [
+                ['Job ID', 'jobId'], ['Grid', 'grid'],
+                ['Service #', 'serviceNumber'], ['Address', 'address'],
+                ['Date', 'appointmentDate'], ['Time', 'time'],
+                ['Contact', 'contact'], ['Phone', 'phone'],
+                ['Status', 'status'], ['PID Desc', 'pidDesc']
             ];
-            document.getElementById('resultContent').innerHTML = fields.map(([label, key]) =>
-                `<div class="field"><div class="field-label">${label}</div><div class="field-value ${!result[key] ? 'empty' : ''}">${result[key] || '（未找到）'}</div></div>`
-            ).join('');
+            var html = '';
+            for (var i = 0; i < fields.length; i++) {
+                var key = fields[i][1];
+                html += '<div class="field"><div class="field-label">' + fields[i][0] + '</div><div class="field-value' + (!result[key] ? ' empty' : '') + '">' + (result[key] || '（未找到）') + '</div></div>';
+            }
+            document.getElementById('resultContent').innerHTML = html;
             document.getElementById('resultSection').classList.add('show');
-            showToast('✅ 提取完成！');
+            showToast('提取完成！');
         }
 
         function saveResult() {
-            if (!lastResult || !lastResult.jobId) { showToast('⚠️ 沒有可儲存的資料'); return; }
-            const orders = getOrders();
-            if (orders.find(s => s.jobId === lastResult.jobId)) { showToast('⚠️ 此工單已儲存過'); return; }
+            if (!lastResult || !lastResult.jobId) { showToast('沒有可儲存的資料'); return; }
+            var orders = getOrders();
+            for (var i = 0; i < orders.length; i++) { if (orders[i].jobId === lastResult.jobId) { showToast('此工單已儲存過'); return; } }
             lastResult.savedAt = new Date().toLocaleString('zh-TW');
             lastResult.orderStatus = 'active';
             lastResult.fare = null;
             orders.unshift(lastResult);
             saveOrders(orders);
             if (lastResult.appointmentDate) selectedDate = lastResult.appointmentDate;
-            showToast('💾 已儲存！');
+            showToast('已儲存！');
         }
 
         function clearAll() {
             document.getElementById('inputText').value = '';
             document.getElementById('resultSection').classList.remove('show');
             lastResult = null;
-            showToast('🗑️ 已清除');
+            showToast('已清除');
         }
 
         function copyResult() {
-            const text = document.getElementById('resultContent').innerText;
-            navigator.clipboard.writeText(text).then(() => showToast('📋 已複製！')).catch(() => showToast('❌ 複製失敗'));
+            var text = document.getElementById('resultContent').innerText;
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(function() { showToast('已複製！'); }).catch(function() { showToast('複製失敗'); });
+            }
         }
 
-        // ===== UTILS =====
         function formatDateObj(d) {
-            return d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
+            var y = d.getFullYear();
+            var m = String(d.getMonth() + 1).padStart(2, '0');
+            var day = String(d.getDate()).padStart(2, '0');
+            return y + '/' + m + '/' + day;
         }
         function getWeekday(dateStr) {
             try {
-                const d = new Date(dateStr.replace(/\//g, '-'));
+                var d = new Date(dateStr.replace(/\//g, '-'));
                 return '(' + ['日','一','二','三','四','五','六'][d.getDay()] + ')';
             } catch(e) { return ''; }
         }
         function showToast(message) {
-            const toast = document.getElementById('toast');
+            var toast = document.getElementById('toast');
             toast.textContent = message; toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
+            setTimeout(function() { toast.classList.remove('show'); }, 3000);
         }
 
-        // Init
         selectedDate = formatDateObj(new Date());
         renderHome();
     </script>
