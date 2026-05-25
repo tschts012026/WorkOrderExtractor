@@ -67,6 +67,8 @@ textarea{width:100%;height:150px;border:2px solid #ddd;border-radius:12px;paddin
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 24px;border-radius:24px;font-size:14px;z-index:999;opacity:0;transition:.3s}
 .toast.show{opacity:1}
 @media(max-width:480px){.order-grid{grid-template-columns:1fr}.date-bar{gap:4px}}
+/* Date Picker */
+#allDatePicker{width:100%;padding:10px;border:2px solid #ddd;border-radius:12px;font-size:15px;background:#f8f8f8;color:#333}
 </style>
 </head>
 <body>
@@ -75,6 +77,7 @@ textarea{width:100%;height:150px;border:2px solid #ddd;border-radius:12px;paddin
 <div class="tab-bar">
 <button class="tab-btn active" onclick="switchTab('home')">Home</button>
 <button class="tab-btn" onclick="switchTab('extract')">Extract</button>
+<button class="tab-btn" onclick="switchTab('all')">All</button>
 <button class="tab-btn" onclick="switchTab('history')">History</button>
 </div>
 <div id="tab-home" class="tab-content active">
@@ -88,6 +91,13 @@ textarea{width:100%;height:150px;border:2px solid #ddd;border-radius:12px;paddin
 <button class="btn-clear" onclick="clearInput()">Clear</button>
 </div>
 <div class="result-box" id="resultBox"></div>
+</div>
+<div id="tab-all" class="tab-content">
+<div style="margin-bottom:12px">
+<input type="date" id="allDatePicker" onchange="renderAll()" style="width:100%;padding:10px;border:2px solid #ddd;border-radius:12px;font-size:15px">
+</div>
+<div class="summary" id="allSummary"></div>
+<div id="allOrderList"></div>
 </div>
 <div id="tab-history" class="tab-content">
 <div class="summary" id="historySummary"></div>
@@ -123,6 +133,7 @@ function switchTab(name){
     else if(name==='extract') btns[1].classList.add('active');
     else btns[2].classList.add('active');
     if(name==='home') renderHome();
+    else if(name==='all'){ renderAll(); }
     else if(name==='history') renderHistory();
 }
 
@@ -134,33 +145,21 @@ function switchTab(name){
 
  }
 
-function renderHome(){
-    var orders=getOrders().filter(function(o){ return o.orderStatus!=='done' && o.orderStatus!=='paused'; });
-    var doneAll=getOrders().filter(function(o){ return o.orderStatus==='done'; }).length;
-    var pausedAll=getOrders().filter(function(o){ return o.orderStatus==='paused'; }).length;
+function todayStr(){ var d=new Date(); return d.getFullYear()+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0'); }
 
-    document.getElementById('summary').innerHTML=
-        '<span class="s-pending">'+orders.length+' pending</span>'+
-        (doneAll?'<span class="s-done">'+doneAll+' done</span>':'')+
-        (pausedAll?'<span class="s-paused">'+pausedAll+' paused</span>':'');
+function renderHome(){
+    var td=todayStr();
+    var orders=getOrders().filter(function(o){ return o.appointmentDate===td && o.orderStatus!=='done' && o.orderStatus!=='paused'; });
+
+    document.getElementById('summary').innerHTML='<span class="s-pending">'+orders.length+' orders for Today ('+td+')</span>';
 
     var list=document.getElementById('orderList');
     if(orders.length===0){
-        list.innerHTML='<div class="empty">No orders</div>';
+        list.innerHTML='<div class="empty">No orders for today ('+td+')</div>';
         return;
     }
-    // Group by date
-    byDate={};
-    orders.forEach(function(o){
-        if(!byDate[o.appointmentDate]) byDate[o.appointmentDate]=[];
-        byDate[o.appointmentDate].push(o);
-    });
-    dates=Object.keys(byDate).sort();
     var h='';
-    dates.forEach(function(d){
-        h+='<div style="font-weight:700;color:#667eea;margin:10px 0 6px;font-size:14px">'+d+'</div>';
-        byDate[d].forEach(function(o,i){ h+=renderCard(o,i); });
-    });
+    orders.forEach(function(o,i){ h+=renderCard(o,i); });
     list.innerHTML=h;
 }
 
@@ -210,6 +209,63 @@ function markOrder(jobId,sn,date,status){
             orders[i].orderStatus=status; saveOrders(orders); renderHome(); showToast(status==='done'?'Done!':'Paused'); return;
         }
     }
+}
+
+function renderAll(){
+    var dp=document.getElementById('allDatePicker');
+    if(!dp.value) dp.value=new Date().toISOString().split('T')[0];
+    var sel=dp.value; // YYYY-MM-DD format from date input
+    // Convert to YYYY/MM/DD to match our stored format
+    var d=sel.split('-');
+    var dateStr=d[0]+'/'+d[1]+'/'+d[2];
+    
+    var allForDate=getOrders().filter(function(o){ return o.appointmentDate===dateStr; });
+    var active=allForDate.filter(function(o){return o.orderStatus!=='done'&&o.orderStatus!=='paused';});
+    var done=allForDate.filter(function(o){return o.orderStatus==='done';});
+    var paused=allForDate.filter(function(o){return o.orderStatus==='paused';});
+    
+    document.getElementById('allSummary').innerHTML=
+        '<span class="s-pending">'+active.length+' active</span>'+
+        (done.length?'<span class="s-done">'+done.length+' done</span>':'')+
+        (paused.length?'<span class="s-paused">'+paused.length+' paused</span>':'')+
+        '<span style="padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;background:#e8e8e8;color:#555">'+allForDate.length+' total</span>';
+
+    var list=document.getElementById('allOrderList');
+    if(allForDate.length===0){
+        list.innerHTML='<div class="empty">No orders for '+dateStr+'</div>';
+        return;
+    }
+    var h='';
+    allForDate.forEach(function(o,i){ h+=renderCardFull(o,i); });
+    list.innerHTML=h;
+}
+
+function renderCardFull(o,idx){
+    var cls=o.orderStatus==='done'?' done':o.orderStatus==='paused'?' paused':'';
+    var stCls=o.orderStatus==='done'?'st-complete':o.orderStatus==='paused'?'st-paused':'st-active';
+    var stText=o.orderStatus==='done'?'DONE':o.orderStatus==='paused'?'PAUSED':'ACTIVE';
+    var html='<div class="order-card'+cls+'" id="card-'+idx+'">';
+    html+='<div class="order-top"><div class="order-id">'+escapeHtml(o.jobId||'N/A')+'</div>';
+    html+='<span class="order-status '+stCls+'">'+stText+'</span></div>';
+    html+='<div class="order-grid">';
+    html+=field('Grid',o.grid)+field('Service #',o.serviceNumber)+field('BSN',o.bsn)+field('Date',o.appointmentDate);
+    html+=field('Time',o.time)+field('Status',o.status)+field('Contact',o.contact)+field('Phone',o.phone);
+    html+='</div>';
+    if(o.address) html+='<div class="order-field" style="margin-top:4px;font-size:12px;color:#888">Address: '+escapeHtml(o.address)+'</div>';
+    if(o.pidDesc) html+='<div class="order-field" style="font-size:12px;color:#667eea">PID: '+escapeHtml(o.pidDesc)+'</div>';
+    html+='<div class="order-actions">';
+    html+='<input type="number" placeholder="Fare" value="'+(o.fare||'')+'" onchange="updateFare(\''+o.jobId+'\',\''+o.serviceNumber+'\',\''+o.appointmentDate+'\',this.value)">';
+    html+='<button class="btn-fare" onclick="updateFare(\''+o.jobId+'\',\''+o.serviceNumber+'\',\''+o.appointmentDate+'\',this.previousElementSibling.value)">Save</button>';
+    if(o.orderStatus!=='done'&&o.orderStatus!=='paused'){
+        html+='<button class="btn-done" onclick="markOrder(\''+o.jobId+'\',\''+o.serviceNumber+'\',\''+o.appointmentDate+'\',\'done\')">Done</button>';
+        html+='<button class="btn-pause" onclick="markOrder(\''+o.jobId+'\',\''+o.serviceNumber+'\',\''+o.appointmentDate+'\',\'paused\')">Pause</button>';
+    } else {
+        html+='<button class="btn-restore" onclick="markOrder(\''+o.jobId+'\',\''+o.serviceNumber+'\',\''+o.appointmentDate+'\',\'active\')">Restore</button>';
+    }
+    html+='</div>';
+    if(o.fare) html+='<div class="order-meta"><span>Fare: $'+o.fare+'</span></div>';
+    html+='</div>';
+    return html;
 }
 
 function renderHistory(){
