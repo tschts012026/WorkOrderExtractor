@@ -141,9 +141,11 @@ function cardHist(o){
   return "<div class=\"order-card "+s+"\">"+cardInner(o,true)+"</div>";
 }
 
+function qs(s){return s?s.replace(/'/g,"&#39;").replace(/"/g,"&quot;"):"";}
 function cardInner(o,full){
   var sc=o.orderStatus==="done"?"osd":o.orderStatus==="paused"?"osh":"osa";
   var st=o.orderStatus==="done"?"DONE":o.orderStatus==="paused"?"PAUSED":"ACTIVE";
+  var jid=qs(o.jobId),sid=qs(o.serviceNumber),did=qs(o.appointmentDate);
   var h="<div class=\"ot\"><div class=\"oid\">"+esc(o.jobId||"N/A")+"</div><span class=\"ost "+sc+"\">"+st+"</span></div>";
   h+="<div class=\"og\">";
   h+=fld("Grid",o.grid)+fld("Svc#",o.serviceNumber)+fld("BSN",o.bsn);
@@ -152,14 +154,14 @@ function cardInner(o,full){
   h+="</div>";
   if(o.address)h+="<div class=\"oaddr\">"+esc(o.address)+"</div>";
   if(o.pidDesc)h+="<div class=\"opid\">"+esc(o.pidDesc)+"</div>";
-  h+="<div class=\"oact\">";
+  h+="<div class=\"oact\" data-j='"+jid+"' data-s='"+sid+"' data-d='"+did+"'>";
   h+="<input type=\"number\" placeholder=\"Fare\" value=\""+(o.fare||"")+"\">";
-  h+="<button class=\"bf\" onclick=\"doFare(this,"+JSON.stringify(o.jobId)+","+JSON.stringify(o.serviceNumber)+","+JSON.stringify(o.appointmentDate)+")\">Save</button>";
+  h+="<button class=\"bf\" onclick=\"doFare(this)\">Save</button>";
   if(o.orderStatus!=="done"&&o.orderStatus!=="paused"){
-    h+="<button class=\"bd\" onclick=\"doMark(this,"+JSON.stringify(o.jobId)+","+JSON.stringify(o.serviceNumber)+","+JSON.stringify(o.appointmentDate)+",'done')\">Done</button>";
-    h+="<button class=\"bp\" onclick=\"doMark(this,"+JSON.stringify(o.jobId)+","+JSON.stringify(o.serviceNumber)+","+JSON.stringify(o.appointmentDate)+",'paused')\">Pause</button>";
+    h+="<button class=\"bd\" onclick=\"doMark(this,'done')\">Done</button>";
+    h+="<button class=\"bp\" onclick=\"doMark(this,'paused')\">Pause</button>";
   }else{
-    h+="<button class=\"br\" onclick=\"doMark(this,"+JSON.stringify(o.jobId)+","+JSON.stringify(o.serviceNumber)+","+JSON.stringify(o.appointmentDate)+",'active')\">Restore</button>";
+    h+="<button class=\"br\" onclick=\"doMark(this,'active')\">Restore</button>";
   }
   h+="</div>";
   if(o.fare)h+="<div style=\"font-size:11px;color:#999;margin-top:2px\">Fare: $"+esc(o.fare)+"</div>";
@@ -168,12 +170,14 @@ function cardInner(o,full){
 
 function fld(l,v){return v?"<div class=\"of\"><span class=\"ol\">"+l+"</span><span class=\"ov\">"+esc(v)+"</span></div>":"";}
 
-function doFare(btn,jobId,sn,date){
+function doFare(btn){
+  var act=btn.parentElement;var jobId=act.dataset.j,sn=act.dataset.s,date=act.dataset.d;
   var val=btn.previousElementSibling.value;
   var orders=getOrders();var i=findIdx(jobId,sn,date);
   if(i>=0){orders[i].fare=val;saveOrders(orders);toast("Fare saved");}
 }
-function doMark(btn,jobId,sn,date,status){
+function doMark(btn,status){
+  var act=btn.parentElement;var jobId=act.dataset.j,sn=act.dataset.s,date=act.dataset.d;
   var orders=getOrders();var i=findIdx(jobId,sn,date);
   if(i>=0){orders[i].orderStatus=status;saveOrders(orders);toast(status==="done"?"Done!":status==="paused"?"Paused":"Restored");}
   var t=btn.closest(".tab-content").id;
