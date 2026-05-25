@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WFM 工單提取器 v5</title>
+    <title>WFM 工單管家 v6</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh; padding: 20px;
+            min-height: 100vh; padding: 15px;
         }
         .container {
             max-width: 800px; margin: 0 auto; background: white;
@@ -17,18 +17,18 @@
         }
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white; padding: 20px 30px; text-align: center;
+            color: white; padding: 18px 25px; text-align: center;
         }
-        .header h1 { font-size: 24px; margin-bottom: 5px; }
-        .header p { opacity: 0.9; font-size: 13px; }
-        .content { padding: 20px; }
+        .header h1 { font-size: 22px; margin-bottom: 4px; }
+        .header p { opacity: 0.9; font-size: 12px; }
+        .content { padding: 15px; }
         .tab-bar {
-            display: flex; margin-bottom: 15px; background: #f5f5f5;
-            border-radius: 10px; padding: 4px;
+            display: flex; margin-bottom: 12px; background: #f5f5f5;
+            border-radius: 10px; padding: 3px;
         }
         .tab-bar button {
-            flex: 1; padding: 10px; border: none; border-radius: 8px;
-            font-size: 14px; font-weight: 600; cursor: pointer;
+            flex: 1; padding: 9px; border: none; border-radius: 8px;
+            font-size: 13px; font-weight: 600; cursor: pointer;
             background: transparent; color: #666; transition: all 0.3s;
         }
         .tab-bar button.active {
@@ -38,18 +38,13 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* Date picker bar */
+        /* Date bar */
         .date-bar {
             display: flex; align-items: center; gap: 8px;
-            margin-bottom: 15px; flex-wrap: wrap;
+            margin-bottom: 10px;
         }
-        .date-bar input[type="date"] {
-            padding: 8px 12px; border: 2px solid #e0e0e0; border-radius: 8px;
-            font-size: 15px; flex: 1; min-width: 140px;
-        }
-        .date-bar input[type="date"]:focus { outline: none; border-color: #667eea; }
         .date-chip {
-            padding: 6px 14px; border-radius: 20px; font-size: 13px;
+            padding: 5px 12px; border-radius: 20px; font-size: 13px;
             font-weight: 600; cursor: pointer; border: 2px solid #e0e0e0;
             background: white; color: #666; transition: all 0.2s; white-space: nowrap;
         }
@@ -60,46 +55,68 @@
         .date-chip.tomorrow { border-color: #f39c12; color: #f39c12; }
         .date-chip.tomorrow.active { background: #f39c12; color: white; border-color: #f39c12; }
         .date-summary {
-            background: #f0f4ff; border-radius: 10px; padding: 10px 15px;
-            margin-bottom: 12px; font-size: 14px; color: #667eea; font-weight: 600;
+            background: #f0f4ff; border-radius: 10px; padding: 8px 12px;
+            margin-bottom: 10px; font-size: 13px; color: #667eea; font-weight: 600;
         }
 
-        /* Work order cards on main page */
+        /* Order cards */
         .order-card {
-            background: #f9f9f9; border-radius: 12px; padding: 15px;
-            margin-bottom: 10px; border-left: 4px solid #667eea;
+            background: #f9f9f9; border-radius: 12px; padding: 12px;
+            margin-bottom: 8px; border-left: 4px solid #667eea;
         }
         .order-card .order-header {
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
-        .order-card .order-id { font-weight: 700; color: #333; font-size: 16px; }
-        .order-card .order-status {
-            background: #667eea; color: white; padding: 3px 10px;
-            border-radius: 12px; font-size: 12px; font-weight: 600;
+        .order-card .order-id { font-weight: 700; color: #333; font-size: 15px; }
+        .order-card .order-status-badge {
+            background: #667eea; color: white; padding: 2px 8px;
+            border-radius: 10px; font-size: 11px; font-weight: 600;
         }
-        .order-card .order-body { font-size: 13px; color: #555; line-height: 1.8; }
-        .order-card .order-body span { display: inline-block; margin-right: 8px; }
+        .order-card .order-body { font-size: 12px; color: #555; line-height: 1.7; }
         .order-card .phone-link { color: #667eea; text-decoration: none; font-weight: 600; }
-        .order-card .delete-btn {
-            background: none; border: none; color: #ccc; font-size: 16px;
-            cursor: pointer; padding: 4px;
+
+        /* Fare + action row */
+        .order-actions {
+            display: flex; align-items: center; gap: 6px;
+            margin-top: 8px; padding-top: 8px; border-top: 1px solid #e0e0e0;
+            flex-wrap: wrap;
         }
-        .order-card .delete-btn:hover { color: #e74c3c; }
+        .fare-input {
+            width: 80px; padding: 6px 8px; border: 2px solid #e0e0e0;
+            border-radius: 6px; font-size: 14px; text-align: right;
+        }
+        .fare-input:focus { outline: none; border-color: #667eea; }
+        .fare-label { font-size: 12px; color: #888; font-weight: 600; }
+        .action-btn {
+            padding: 6px 14px; border: none; border-radius: 6px;
+            font-size: 13px; font-weight: 600; cursor: pointer;
+            color: white; transition: opacity 0.2s;
+        }
+        .action-btn:hover { opacity: 0.85; }
+        .btn-done { background: #27ae60; }
+        .btn-pause { background: #f39c12; }
+        .btn-undo { background: #95a5a6; }
+
+        /* Completed/paused cards in history */
+        .order-card.done { border-left-color: #27ae60; opacity: 0.7; }
+        .order-card.paused { border-left-color: #f39c12; opacity: 0.7; }
+        .badge-done { background: #27ae60; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+        .badge-paused { background: #f39c12; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
 
         /* Extract tab */
-        .input-section { margin-bottom: 15px; }
-        .input-section label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px; }
+        .input-section { margin-bottom: 12px; }
+        .input-section label { display: block; margin-bottom: 6px; font-weight: 600; color: #333; font-size: 13px; }
         textarea {
-            width: 100%; min-height: 150px; padding: 12px;
+            width: 100%; min-height: 130px; padding: 10px;
             border: 2px solid #e0e0e0; border-radius: 10px;
-            font-size: 15px; font-family: inherit; resize: vertical;
+            font-size: 14px; font-family: inherit; resize: vertical;
         }
         textarea:focus { outline: none; border-color: #667eea; }
-        .button-group { display: flex; gap: 10px; margin-bottom: 15px; }
+        .button-group { display: flex; gap: 8px; margin-bottom: 12px; }
         .button-group button {
-            flex: 1; padding: 12px; border: none; border-radius: 10px;
-            font-size: 15px; font-weight: 600; cursor: pointer;
+            flex: 1; padding: 10px; border: none; border-radius: 10px;
+            font-size: 14px; font-weight: 600; cursor: pointer;
         }
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -109,24 +126,35 @@
         .result-section { display: none; }
         .result-section.show { display: block; animation: fadeIn 0.4s; }
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
+            from { opacity: 0; transform: translateY(12px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .result-card {
-            background: #f9f9f9; border-radius: 10px; padding: 15px; margin-bottom: 15px;
+            background: #f9f9f9; border-radius: 10px; padding: 12px; margin-bottom: 12px;
         }
-        .result-card h3 { color: #667eea; margin-bottom: 12px; font-size: 16px; }
-        .field { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #e0e0e0; }
+        .result-card h3 { color: #667eea; margin-bottom: 10px; font-size: 15px; }
+        .field { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #e0e0e0; }
         .field:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .field-label { font-weight: 600; color: #666; font-size: 13px; margin-bottom: 3px; }
-        .field-value { color: #333; font-size: 15px; word-break: break-word; }
+        .field-label { font-weight: 600; color: #666; font-size: 12px; margin-bottom: 2px; }
+        .field-value { color: #333; font-size: 14px; word-break: break-word; }
         .field-value.empty { color: #999; font-style: italic; }
-        .action-row { display: flex; gap: 8px; margin-top: 10px; }
-        .action-btn {
+        .result-actions { display: flex; gap: 8px; margin-top: 8px; }
+        .result-btn {
             padding: 8px 15px; border: none; border-radius: 5px;
-            font-size: 14px; cursor: pointer; font-weight: 600;
+            font-size: 13px; cursor: pointer; font-weight: 600; color: white;
         }
-        .empty-msg { color: #999; text-align: center; padding: 30px; font-size: 15px; }
+        .empty-msg { color: #999; text-align: center; padding: 25px; font-size: 14px; }
+
+        /* History section */
+        .history-section { margin-top: 15px; }
+        .history-toggle {
+            background: #f5f5f5; border: none; padding: 8px 14px;
+            border-radius: 8px; font-size: 13px; font-weight: 600;
+            cursor: pointer; color: #666; width: 100%; text-align: left;
+        }
+        .history-toggle:hover { background: #eee; }
+        .history-list { display: none; margin-top: 8px; }
+        .history-list.show { display: block; }
 
         .toast {
             position: fixed; bottom: 30px; left: 50%;
@@ -142,20 +170,21 @@
     <div class="container">
         <div class="header">
             <h1>📋 WFM 工單管家</h1>
-            <p>貼入 → 提取 → 儲存 → 按日查看</p>
+            <p>提取 → 儲存 → 按日做 → 記車錢</p>
         </div>
         <div class="content">
             <div class="tab-bar">
                 <button class="active" onclick="switchTab('home', this)">🏠 今日工作</button>
                 <button onclick="switchTab('extract', this)">📝 提取</button>
-                <button onclick="switchTab('alldates', this)">📅 所有日期</button>
+                <button onclick="switchTab('history', this)">📦 歷史</button>
             </div>
 
-            <!-- HOME TAB: date picker + day's orders -->
+            <!-- HOME TAB -->
             <div id="tab-home" class="tab-content active">
                 <div class="date-bar" id="dateBar"></div>
                 <div class="date-summary" id="dateSummary"></div>
                 <div id="dayOrders"></div>
+                <div id="dayHistory" class="history-section"></div>
             </div>
 
             <!-- EXTRACT TAB -->
@@ -172,17 +201,17 @@
                     <div class="result-card">
                         <h3>✅ 提取結果</h3>
                         <div id="resultContent"></div>
-                        <div class="action-row">
-                            <button class="action-btn" style="background:#667eea;color:white;" onclick="copyResult()">📋 複製</button>
-                            <button class="action-btn" style="background:#27ae60;color:white;flex:1;" onclick="saveResult()">💾 儲存</button>
+                        <div class="result-actions">
+                            <button class="result-btn" style="background:#667eea;" onclick="copyResult()">📋 複製</button>
+                            <button class="result-btn" style="background:#27ae60;flex:1;" onclick="saveResult()">💾 儲存</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- ALL DATES TAB -->
-            <div id="tab-alldates" class="tab-content">
-                <div id="allDatesList"></div>
+            <!-- HISTORY TAB -->
+            <div id="tab-history" class="tab-content">
+                <div id="historyList"></div>
             </div>
         </div>
     </div>
@@ -190,7 +219,7 @@
 
     <script>
         let lastResult = null;
-        let selectedDate = null; // null = today
+        let selectedDate = null;
 
         function switchTab(tab, btn) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -198,8 +227,11 @@
             document.getElementById('tab-' + tab).classList.add('active');
             btn.classList.add('active');
             if (tab === 'home') renderHome();
-            if (tab === 'alldates') renderAllDates();
+            if (tab === 'history') renderHistory();
         }
+
+        function getOrders() { return JSON.parse(localStorage.getItem('wfm_orders') || '[]'); }
+        function saveOrders(orders) { localStorage.setItem('wfm_orders', JSON.stringify(orders)); }
 
         // ===== HOME TAB =====
         function renderHome() {
@@ -208,80 +240,140 @@
         }
 
         function renderDateBar() {
-            const saved = JSON.parse(localStorage.getItem('wfm_orders') || '[]');
-            // Collect all dates
-            const dateSet = new Set();
-            saved.forEach(s => { if (s.appointmentDate) dateSet.add(s.appointmentDate); });
-
             const today = new Date();
             const todayStr = formatDateObj(today);
             const tmr = new Date(today); tmr.setDate(tmr.getDate()+1);
             const tmrStr = formatDateObj(tmr);
+            if (!selectedDate) selectedDate = todayStr;
 
-            // Only show today + tomorrow
             let html = '';
             html += `<button class="date-chip today ${selectedDate === todayStr ? 'active' : ''}" onclick="selectDate('${todayStr}')">🔴 今日 ${todayStr}</button>`;
             html += `<button class="date-chip tomorrow ${selectedDate === tmrStr ? 'active' : ''}" onclick="selectDate('${tmrStr}')">🟠 明日 ${tmrStr}</button>`;
-
-            // If no date selected, default to today
-            if (!selectedDate && dateSet.size > 0) selectedDate = todayStr;
-
             document.getElementById('dateBar').innerHTML = html;
         }
 
-        function selectDate(dateStr) {
-            selectedDate = dateStr;
-            renderHome();
-        }
+        function selectDate(d) { selectedDate = d; renderHome(); }
 
         function renderDayOrders() {
-            const saved = JSON.parse(localStorage.getItem('wfm_orders') || '[]');
+            const orders = getOrders();
             const todayStr = formatDateObj(new Date());
-            if (!selectedDate) selectedDate = todayStr;
-            const displayDate = selectedDate;
-            const orders = saved.filter(s => s.appointmentDate === displayDate);
+            const displayDate = selectedDate || todayStr;
+            const dayOrders = orders.filter(s => s.appointmentDate === displayDate);
+            const active = dayOrders.filter(s => !s.orderStatus || s.orderStatus === 'active');
+            const completed = dayOrders.filter(s => s.orderStatus === 'done');
+            const paused = dayOrders.filter(s => s.orderStatus === 'paused');
 
             const wd = getWeekday(displayDate);
             const isToday = displayDate === todayStr;
             document.getElementById('dateSummary').innerHTML =
-                `📅 ${displayDate} ${wd}${isToday ? ' 🔴今日' : ''}　—　${orders.length} 單工作`;
-
+                `📅 ${displayDate} ${wd}${isToday ? ' 🔴今日' : ''}　—　${active.length} 單待做` +
+                (completed.length + paused.length > 0 ? ` ｜ ✅${completed.length} ⏸${paused.length}` : '');
 
             const container = document.getElementById('dayOrders');
-            if (!orders.length) {
+            if (!active.length && !completed.length && !paused.length) {
                 container.innerHTML = '<div class="empty-msg">呢日冇工單 🎉</div>';
+                document.getElementById('dayHistory').innerHTML = '';
                 return;
             }
 
-            container.innerHTML = orders.map((s, i) => `
-                <div class="order-card">
-                    <div class="order-header">
-                        <span class="order-id">${i+1}. #${s.jobId}</span>
-                        <span>
-                            <span class="order-status">${s.status || ''}</span>
-                            <button class="delete-btn" onclick="deleteSaved('${s.jobId}')">🗑️</button>
-                        </span>
-                    </div>
-                    <div class="order-body">
-                        <div>📍 ${s.grid || ''} | 🔧 ${s.serviceNumber || ''}</div>
-                        <div>🏠 ${s.address || ''}</div>
-                        <div>⏰ ${s.time || ''}</div>
-                        <div>👤 ${s.contact || ''} ${s.phone ? `<a class="phone-link" href="tel:${s.phone}">📞 ${s.phone}</a>` : ''}</div>
-                        <div>📝 ${s.pidDesc || ''}</div>
-                    </div>
+            // Active orders
+            container.innerHTML = active.length ? active.map((s, i) => renderOrderCard(s, i, true)).join('') :
+                '<div class="empty-msg">全部搞掂晒！🎉</div>';
+
+            // Completed/paused history
+            const histOrders = [...completed, ...paused];
+            const histHtml = histOrders.length ? `
+                <button class="history-toggle" onclick="this.nextElementSibling.classList.toggle('show')">
+                    📦 已處理（${completed.length}完成 / ${paused.length}暫停）▼
+                </button>
+                <div class="history-list">
+                    ${histOrders.map((s, i) => renderOrderCard(s, i, false)).join('')}
                 </div>
-            `).join('');
+            ` : '';
+            document.getElementById('dayHistory').innerHTML = histHtml;
         }
 
-        // ===== ALL DATES TAB =====
-        function renderAllDates() {
-            const saved = JSON.parse(localStorage.getItem('wfm_orders') || '[]');
-            if (!saved.length) {
-                document.getElementById('allDatesList').innerHTML = '<div class="empty-msg">暫無已儲存的工單</div>';
+        function renderOrderCard(s, i, isActive) {
+            const statusClass = s.orderStatus === 'done' ? 'done' : s.orderStatus === 'paused' ? 'paused' : '';
+            const badge = s.orderStatus === 'done' ? '<span class="badge-done">✅ 完成</span>' :
+                          s.orderStatus === 'paused' ? '<span class="badge-paused">⏸ 暫停</span>' :
+                          `<span class="order-status-badge">${s.status || '待做'}</span>`;
+
+            const fareDisplay = s.fare ? `<div>🚗 車錢：$${s.fare}</div>` : '';
+
+            let actions = '';
+            if (isActive) {
+                actions = `
+                <div class="order-actions">
+                    <span class="fare-label">🚗 車錢 $</span>
+                    <input class="fare-input" type="number" min="0" step="0.5"
+                           placeholder="0" value="${s.fare || ''}"
+                           onchange="updateFare('${s.jobId}', this.value)">
+                    <button class="action-btn btn-done" onclick="markOrder('${s.jobId}','done')">✅ 完成</button>
+                    <button class="action-btn btn-pause" onclick="markOrder('${s.jobId}','paused')">⏸ 暫停</button>
+                </div>`;
+            } else {
+                actions = `
+                <div class="order-actions">
+                    <button class="action-btn btn-undo" onclick="markOrder('${s.jobId}','active')">↩️ 恢復</button>
+                    ${!s.fare ? `<span class="fare-label">🚗 車錢 $</span><input class="fare-input" type="number" min="0" step="0.5" placeholder="0" onchange="updateFare('${s.jobId}', this.value)">` : ''}
+                </div>`;
+            }
+
+            return `
+            <div class="order-card ${statusClass}">
+                <div class="order-header">
+                    <span class="order-id">#${s.jobId}</span>
+                    <span>${badge}</span>
+                </div>
+                <div class="order-body">
+                    <div>📍 ${s.grid || ''} | 🔧 ${s.serviceNumber || ''}</div>
+                    <div>🏠 ${s.address || ''}</div>
+                    <div>⏰ ${s.time || ''}</div>
+                    <div>👤 ${s.contact || ''} ${s.phone ? `<a class="phone-link" href="tel:${s.phone}">📞 ${s.phone}</a>` : ''}</div>
+                    <div>📝 ${s.pidDesc || ''}</div>
+                    ${fareDisplay}
+                </div>
+                ${actions}
+            </div>`;
+        }
+
+        function updateFare(jobId, value) {
+            const orders = getOrders();
+            const o = orders.find(s => s.jobId === jobId);
+            if (o) { o.fare = value || null; saveOrders(orders); }
+        }
+
+        function markOrder(jobId, status) {
+            const orders = getOrders();
+            const o = orders.find(s => s.jobId === jobId);
+            if (o) {
+                o.orderStatus = status;
+                if (status === 'done' || status === 'paused') {
+                    o.completedAt = new Date().toLocaleString('zh-TW');
+                } else {
+                    o.completedAt = null;
+                }
+                saveOrders(orders);
+                renderHome();
+                showToast(status === 'done' ? '✅ 已完成！' : status === 'paused' ? '⏸ 已暫停' : '↩️ 已恢復');
+            }
+        }
+
+        // ===== HISTORY TAB =====
+        function renderHistory() {
+            const orders = getOrders();
+            const done = orders.filter(s => s.orderStatus === 'done');
+            const paused = orders.filter(s => s.orderStatus === 'paused');
+
+            if (!done.length && !paused.length) {
+                document.getElementById('historyList').innerHTML = '<div class="empty-msg">暫無歷史記錄</div>';
                 return;
             }
+
+            // Group by date
             const groups = {};
-            saved.forEach(s => {
+            [...done, ...paused].forEach(s => {
                 const k = s.appointmentDate || '未指定日期';
                 if (!groups[k]) groups[k] = [];
                 groups[k].push(s);
@@ -291,27 +383,25 @@
                 if (b === '未指定日期') return -1;
                 return b.localeCompare(a);
             });
-            const todayStr = formatDateObj(new Date());
-            const tmr = new Date(); tmr.setDate(tmr.getDate()+1);
-            const tmrStr = formatDateObj(tmr);
 
-            let html = '';
+            // Total fare
+            const totalFare = done.reduce((sum, s) => sum + (parseFloat(s.fare) || 0), 0);
+
+            let html = `<div class="date-summary">💰 總車錢：$${totalFare.toFixed(1)}（${done.length}單已完成）</div>`;
             sortedKeys.forEach(dateKey => {
-                const orders = groups[dateKey];
-                let badge = '';
-                if (dateKey === todayStr) badge = ' 🔴今日';
-                else if (dateKey === tmrStr) badge = ' 🟠明日';
+                const gOrders = groups[dateKey];
+                const dayFare = gOrders.filter(s => s.orderStatus === 'done').reduce((sum, s) => sum + (parseFloat(s.fare) || 0), 0);
                 const wd = dateKey !== '未指定日期' ? getWeekday(dateKey) : '';
-                html += `<div class="date-summary" style="cursor:pointer;" onclick="selectedDate='${dateKey}';switchTab('home',document.querySelectorAll('.tab-bar button')[0])">📅 ${dateKey} ${wd}${badge} — ${orders.length} 單（撳入查看）</div>`;
+                html += `<div class="date-summary">📅 ${dateKey} ${wd} — 車錢 $${dayFare.toFixed(1)}</div>`;
+                gOrders.forEach((s, i) => { html += renderOrderCard(s, i, false); });
             });
-            document.getElementById('allDatesList').innerHTML = html;
+            document.getElementById('historyList').innerHTML = html;
         }
 
         // ===== EXTRACT LOGIC =====
         function extractData() {
             const input = document.getElementById('inputText').value.trim();
             if (!input) { showToast('⚠️ 請先貼入工單內容'); return; }
-
             const isEnglish = /^(Job ID|Grid|Service|Address|Appointment|Time|Contact|Status|PID)/m.test(input);
             let result;
             if (isEnglish) {
@@ -397,22 +487,15 @@
 
         function saveResult() {
             if (!lastResult || !lastResult.jobId) { showToast('⚠️ 沒有可儲存的資料'); return; }
-            const saved = JSON.parse(localStorage.getItem('wfm_orders') || '[]');
-            if (saved.find(s => s.jobId === lastResult.jobId)) { showToast('⚠️ 此工單已儲存過'); return; }
+            const orders = getOrders();
+            if (orders.find(s => s.jobId === lastResult.jobId)) { showToast('⚠️ 此工單已儲存過'); return; }
             lastResult.savedAt = new Date().toLocaleString('zh-TW');
-            saved.unshift(lastResult);
-            localStorage.setItem('wfm_orders', JSON.stringify(saved));
-            // Auto select the date of the saved order
+            lastResult.orderStatus = 'active';
+            lastResult.fare = null;
+            orders.unshift(lastResult);
+            saveOrders(orders);
             if (lastResult.appointmentDate) selectedDate = lastResult.appointmentDate;
             showToast('💾 已儲存！');
-        }
-
-        function deleteSaved(jobId) {
-            let saved = JSON.parse(localStorage.getItem('wfm_orders') || '[]');
-            saved = saved.filter(s => s.jobId !== jobId);
-            localStorage.setItem('wfm_orders', JSON.stringify(saved));
-            renderHome();
-            showToast('🗑️ 已刪除');
         }
 
         function clearAll() {
@@ -429,19 +512,14 @@
 
         // ===== UTILS =====
         function formatDateObj(d) {
-            const y = d.getFullYear();
-            const m = String(d.getMonth()+1).padStart(2,'0');
-            const day = String(d.getDate()).padStart(2,'0');
-            return y + '/' + m + '/' + day;
+            return d.getFullYear() + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + String(d.getDate()).padStart(2,'0');
         }
         function getWeekday(dateStr) {
             try {
                 const d = new Date(dateStr.replace(/\//g, '-'));
-                const days = ['日','一','二','三','四','五','六'];
-                return '(' + days[d.getDay()] + ')';
+                return '(' + ['日','一','二','三','四','五','六'][d.getDay()] + ')';
             } catch(e) { return ''; }
         }
-
         function showToast(message) {
             const toast = document.getElementById('toast');
             toast.textContent = message; toast.classList.add('show');
