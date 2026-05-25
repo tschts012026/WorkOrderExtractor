@@ -199,6 +199,7 @@
         }
         .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
     </style>
+<link rel="manifest" href="manifest.json">
 </head>
 <body>
     <div class="container">
@@ -302,19 +303,25 @@
         }
 function saveOrders(orders) { localStorage.setItem('wfm_orders', JSON.stringify(orders)); }
 
-        function renderHome() { renderHomeDatePicker(); renderDayOrders(); }
+        function renderHome() { renderDatePicker(); renderDayOrders(); }
 
-        function renderDateBar() {
-            var today = new Date();
-            var todayStr = formatDateObj(today);
-            var tmr = new Date(today); tmr.setDate(tmr.getDate() + 1);
-            var tmrStr = formatDateObj(tmr);
-            if (!selectedDate) selectedDate = todayStr;
+        function renderDatePicker() {
+            var dates = getAllDates();
+            var sel = document.getElementById('homeDateSelect');
+            if (!sel) return;
+            if (!selectedDate) selectedDate = formatDateObj(new Date());
+            var todayStr = formatDateObj(new Date());
             var html = '';
-            html += '<button class="date-chip today' + (selectedDate === todayStr ? ' active' : '') + '" onclick="selectDate(\'' + todayStr + '\')">今日 ' + todayStr + '</button>';
-            html += '<button class="date-chip tomorrow' + (selectedDate === tmrStr ? ' active' : '') + '" onclick="selectDate(\'' + tmrStr + '\')">明日 ' + tmrStr + '</button>';
-            document.getElementById('dateBar').innerHTML = html;
+            for (var i = 0; i < dates.length; i++) {
+                var d = dates[i];
+                var wd = d !== '\u672a\u6307\u5b9a' ? getWeekday(d) : '';
+                var isToday = d === todayStr;
+                html += '<option value="' + d + '"' + (selectedDate === d ? ' selected' : '') + '>' + d + ' ' + wd + (isToday ? ' \u4eca\u65e5' : '') + '</option>';
+            }
+            sel.innerHTML = html;
         }
+
+
 
         function selectDate(d) { selectedDate = d; renderHome(); }
 
@@ -497,15 +504,6 @@ function saveOrders(orders) { localStorage.setItem('wfm_orders', JSON.stringify(
 
         function goToDate(dateKey) {
             selectedDate = dateKey;
-            switchTab('home', document.querySelectorAll('.tab-bar button')[0]);
-        }
-        function toggleDateGroup(id) {
-            var el = document.getElementById(id);
-            if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
-        }
-
-        function goToDate(dateKey) {
-            selectedDate = dateKey;
             var btns = document.querySelectorAll('.tab-bar button');
             switchTab('home', btns[0]);
         }
@@ -648,5 +646,16 @@ function saveOrders(orders) { localStorage.setItem('wfm_orders', JSON.stringify(
         selectedDate = formatDateObj(new Date());
         renderHome();
     </script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./sw.js').then(function() {
+      console.log('SW registered');
+    }).catch(function(err) {
+      console.log('SW reg failed', err);
+    });
+  });
+}
+</script>
 </body>
 </html>
