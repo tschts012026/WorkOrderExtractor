@@ -29,7 +29,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 .oact{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;align-items:center}
 .oact input{width:60px;padding:3px 6px;border:1px solid #ddd;border-radius:8px;font-size:11px}
 .oact button{padding:3px 10px;border:none;border-radius:8px;font-size:11px;cursor:pointer;font-weight:600}
-.bd{background:#28a745;color:#fff}.bp{background:#ffc107;color:#333}.br{background:#17a2b8;color:#fff}.bx{background:#dc3545;color:#fff}.bf{background:#6f42c1;color:#fff}
+.bd{background:#28a745;color:#fff}.bp{background:#ffc107;color:#333}.br{background:#17a2b8;color:#fff}.bx{background:#dc3545;color:#fff}
+.irow{display:flex;align-items:center;gap:6px;width:100%;margin-bottom:3px}
+.irow input{flex:1;padding:4px 8px;border:1px solid #ddd;border-radius:8px;font-size:12px}
+.imeta{font-size:11px;color:#999;margin-top:2px}
 textarea{width:100%;height:140px;border:2px solid #ddd;border-radius:12px;padding:10px;font-size:13px;font-family:monospace;resize:vertical}
 .ebtn{display:flex;gap:8px;margin-top:8px}
 .ebtn button{flex:1;padding:10px;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
@@ -155,8 +158,8 @@ function cardInner(o,full){
   if(o.address)h+="<div class=\"oaddr\">"+esc(o.address)+"</div>";
   if(o.pidDesc)h+="<div class=\"opid\">"+esc(o.pidDesc)+"</div>";
   h+="<div class=\"oact\" data-j='"+jid+"' data-s='"+sid+"' data-d='"+did+"'>";
-  h+="<input type=\"number\" placeholder=\"Fare\" value=\""+(o.fare||"")+"\">";
-  h+="<button class=\"bf\" onclick=\"doFare(this)\">Save</button>";
+  h+="<div class=\"irow\"><span class=\"ol\">Fare $</span><input type=\"number\" placeholder=\"0\" value=\""+(o.fare||"")+"\" onchange=\"doSave(this)\"></div>";
+  h+="<div class=\"irow\"><span class=\"ol\">Note</span><input type=\"text\" placeholder=\"Add note...\" value=\""+qs(o.note||"")+"\" onchange=\"doSave(this)\"></div>";
   if(o.orderStatus!=="done"&&o.orderStatus!=="paused"){
     h+="<button class=\"bd\" onclick=\"doMark(this,'done')\">Done</button>";
     h+="<button class=\"bp\" onclick=\"doMark(this,'paused')\">Pause</button>";
@@ -164,22 +167,32 @@ function cardInner(o,full){
     h+="<button class=\"br\" onclick=\"doMark(this,'active')\">Restore</button>";
   }
   h+="</div>";
-  if(o.fare)h+="<div style=\"font-size:11px;color:#999;margin-top:2px\">Fare: $"+esc(o.fare)+"</div>";
+  if(o.fare)h+="<div class=\"imeta\">Fare: $"+esc(o.fare)+(o.note?" | "+esc(o.note):"")+"</div>";
   return h;
 }
 
 function fld(l,v){return v?"<div class=\"of\"><span class=\"ol\">"+l+"</span><span class=\"ov\">"+esc(v)+"</span></div>":"";}
 
-function doFare(btn){
-  var act=btn.parentElement;var jobId=act.dataset.j,sn=act.dataset.s,date=act.dataset.d;
-  var val=btn.previousElementSibling.value;
+function doSave(input){
+  var act=input.closest(".oact");var jobId=act.dataset.j,sn=act.dataset.s,date=act.dataset.d;
   var orders=getOrders();var i=findIdx(jobId,sn,date);
-  if(i>=0){orders[i].fare=val;saveOrders(orders);toast("Fare saved");}
+  if(i>=0){
+    var fareInput=act.querySelector('input[type=number]');
+    var noteInput=act.querySelector('input[type=text]');
+    orders[i].fare=fareInput.value;orders[i].note=noteInput.value;
+    saveOrders(orders);toast("Saved");
+  }
 }
 function doMark(btn,status){
   var act=btn.parentElement;var jobId=act.dataset.j,sn=act.dataset.s,date=act.dataset.d;
+  // save any pending input first
+  var fareInput=act.querySelector('input[type=number]');
+  var noteInput=act.querySelector('input[type=text]');
   var orders=getOrders();var i=findIdx(jobId,sn,date);
-  if(i>=0){orders[i].orderStatus=status;saveOrders(orders);toast(status==="done"?"Done!":status==="paused"?"Paused":"Restored");}
+  if(i>=0){
+    orders[i].fare=fareInput.value;orders[i].note=noteInput.value;
+    orders[i].orderStatus=status;saveOrders(orders);toast(status==="done"?"Done!":status==="paused"?"Paused":"Restored");
+  }
   var t=btn.closest(".tab-content").id;
   if(t==="tab-home")renderHome();else if(t==="tab-all")renderAll();else renderHistory();
 }
@@ -224,7 +237,7 @@ function saveResult(){
   var box=document.getElementById("resultBox");var data=JSON.parse(box.dataset.data);if(!data)return;
   var orders=getOrders();
   if(orders.some(function(o){return o.jobId===data.jobId&&o.serviceNumber===data.serviceNumber&&o.appointmentDate===data.appointmentDate;})){toast("Already saved");return;}
-  data.orderStatus="active";data.fare="";orders.push(data);saveOrders(orders);toast("Saved!");switchTab("home");
+  data.orderStatus="active";data.fare="";data.note="";orders.push(data);saveOrders(orders);toast("Saved!");switchTab("home");
 }
 
 function clearInput(){document.getElementById("inputText").value="";document.getElementById("resultBox").style.display="none";}
