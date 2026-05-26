@@ -112,6 +112,7 @@ function renderHome(){
   var orders=getOrders().filter(function(o){return o.appointmentDate===td&&o.orderStatus!=="done"&&o.orderStatus!=="paused";});
   document.getElementById("homeSummary").innerHTML="<span class=\"s-p\">"+orders.length+" orders today ("+td+")</span>";
   if(orders.length===0){document.getElementById("homeList").innerHTML="<div class=\"empty\">No orders for today</div>";return;}
+  orders.sort(function(a,b){return(a.grid||"").localeCompare(b.grid||"");});
   var h="";orders.forEach(function(o){h+=card(o);});document.getElementById("homeList").innerHTML=h;
 }
 
