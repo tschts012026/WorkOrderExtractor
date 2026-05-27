@@ -366,7 +366,10 @@ function saveResult(){
   var box=document.getElementById("resultBox");var data=JSON.parse(box.dataset.data);if(!data)return;
   var orders=getOrders();
   if(orders.some(function(o){return o.jobId===data.jobId&&o.serviceNumber===data.serviceNumber&&o.appointmentDate===data.appointmentDate;})){toast("Already saved");return;}
-  data.orderStatus="active";data.fare="";data.note="";orders.push(data);saveOrders(orders);toast("Saved!");switchTab("home");
+  data.orderStatus="active";data.fare="";data.note="";orders.push(data);saveOrders(orders);toast("Saved!");
+  document.getElementById("inputText").value="";
+  box.style.display="none";
+  switchTab("home");
 }
 
 function clearInput(){document.getElementById("inputText").value="";document.getElementById("resultBox").style.display="none";}
