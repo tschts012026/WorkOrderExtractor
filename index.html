@@ -221,10 +221,22 @@ function doMark(btn,status){
   if(t==="tab-home")renderHome();else if(t==="tab-all")renderAll();else renderHistory();
 }
 
-function doExport(){
+async function doExport(){
   var orders=getOrders();
   if(orders.length===0){toast("No data to export");return;}
-  var blob=new Blob([JSON.stringify(orders,null,2)],{type:"application/json"});
+  var jsonStr=JSON.stringify(orders,null,2);
+  if(window.showSaveFilePicker){
+    try{
+      var opts={suggestedName:"wfm_backup_"+todayStr().replace(/\//g,"-")+".json",types:[{description:"JSON Files",accept:{"application/json":[".json"]}}]};
+      var handle=await window.showSaveFilePicker(opts);
+      var writable=await handle.createWritable();
+      await writable.write(jsonStr);
+      await writable.close();
+      toast("Saved to "+handle.name);
+      return;
+    }catch(e){if(e.name!=="AbortError"){console.error(e);}}
+  }
+  var blob=new Blob([jsonStr],{type:"application/json"});
   var a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
   a.download="wfm_backup_"+todayStr().replace(/\//g,"-")+".json";
