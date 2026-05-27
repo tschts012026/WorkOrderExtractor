@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
@@ -26,7 +26,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;b
 .osa{background:#e3f2fd;color:#1565c0}.osd{background:#c8e6c9;color:#2e7d32}.osh{background:#fff9c4;color:#f57f17}
 .og{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;font-size:12px;color:#555}.letter-filter{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:8px;padding:6px;background:#f8f9fa;border-radius:8px}.letter-btn{padding:3px 7px;border:1px solid #ddd;border-radius:6px;background:#fff;font-size:11px;font-weight:600;cursor:pointer;color:#555}.letter-btn.active{background:#667eea;color:#fff;border-color:#667eea}.letter-count{font-size:9px;color:#999;margin-left:2px}.letter-btn.active .letter-count{color:#e0e0ff}
 .of{display:flex;gap:4px;margin-top:3px}.ol{color:#999;font-size:11px;min-width:70px}.ov{color:#333;font-size:12px;word-break:break-all}
-
 .oact{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;align-items:center}
 .oact input{width:60px;padding:3px 6px;border:1px solid #ddd;border-radius:8px;font-size:11px}
 .oact button{padding:3px 10px;border:none;border-radius:8px;font-size:11px;cursor:pointer;font-weight:600}
@@ -82,10 +81,9 @@ textarea{width:100%;height:140px;border:2px solid #ddd;border-radius:12px;paddin
 <div class="summary" id="histSummary"></div>
 <div id="histList"></div>
 <div style="margin-top:12px;display:flex;gap:8px">
-<button class="bext" onclick="doExport()" style="flex:1;padding:8px">? Export</button>
-<button class="bclr" onclick="document.getElementById('importFile').click()" style="flex:1;padding:8px">? Import</button>
+<button class="bext" onclick="doExport()" style="flex:1;padding:8px">Export</button>
+<button class="bclr" onclick="document.getElementById('importFile').click()" style="flex:1;padding:8px">Import</button>
 <input type="file" id="importFile" accept=".json" style="display:none" onchange="doImport(event)">
-</div>
 </div>
 </div>
 <div id="tab-advance" class="tab-content">
@@ -98,7 +96,7 @@ textarea{width:100%;height:140px;border:2px solid #ddd;border-radius:12px;paddin
   </div>
 </div>
 <div style="margin-bottom:10px">
-  <div style="font-size:13px;font-weight:700;color:#555;margin-bottom:6px">Search by Service # (BSN)</div>
+  <div style="font-size:13px;font-weight:700;color:#555;margin-bottom:6px">Search by Service #</div>
   <div style="display:flex;gap:6px">
     <input type="text" id="bsnSearch" placeholder="Enter Service #..." style="flex:1;padding:8px;border:2px solid #ddd;border-radius:10px;font-size:13px" onkeydown="if(event.key==='Enter')doBSNSearch()">
     <button onclick="doBSNSearch()" style="padding:8px 16px;background:#667eea;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">Search</button>
@@ -110,7 +108,7 @@ textarea{width:100%;height:140px;border:2px solid #ddd;border-radius:12px;paddin
 </div>
 <div id="bsnEmpty" style="display:none;text-align:center;padding:30px;color:#ccc;font-size:13px">No matching orders found</div>
 </div>
-
+</div>
 <div id="editBox" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1000;overflow:auto"></div>
 <div class="toast" id="toast"></div>
 <script>
@@ -127,58 +125,7 @@ function switchTab(name){
   var btns=document.querySelectorAll(".tab-btn");
   var map={home:0,extract:1,all:2,history:3,advance:4};
   btns[map[name]].classList.add("active");
-  if(name==="home")function doBSNSearch(){
-  var query=document.getElementById("bsnSearch").value.trim().toLowerCase();
-  if(!query){toast("Enter Service # first");return;}
-  var all=getOrders();
-  var matched=all.filter(function(o){return o.serviceNumber&&o.serviceNumber.toLowerCase().replace(/\s+/g,"")===query.replace(/\s+/g,"");});
-  if(matched.length===0){
-    matched=all.filter(function(o){return o.serviceNumber&&o.serviceNumber.toLowerCase().includes(query);});
-  }
-  var resultsDiv=document.getElementById("bsnResults");
-  var emptyDiv=document.getElementById("bsnEmpty");
-  if(matched.length===0){
-    resultsDiv.style.display="none";
-    emptyDiv.style.display="block";
-    return;
-  }
-  emptyDiv.style.display="none";
-  resultsDiv.style.display="block";
-  var totalFare=matched.reduce(function(s,o){return s+parseFloat(o.fare||0);},0);
-  var done=matched.filter(function(o){return o.orderStatus==="done";}).length;
-  var paused=matched.filter(function(o){return o.orderStatus==="paused";}).length;
-  document.getElementById("bsnSummary").innerHTML="<span class=\"s-p\">"+matched.length+" result"+(matched.length>1?"s":"")+"</span> <span class=\"s-d\">"+done+" done</span> "+(paused?"<span class=\"s-h\">"+paused+" paused</span> ":"")+(totalFare>0?"<span class=\"s-p\">Total: $"+totalFare.toFixed(1)+"</span>":"");
-  var h="";
-  matched.forEach(function(o){h+=cardFull(o);});
-  document.getElementById("bsnList").innerHTML=h;
-}
-
-function doImport2(ev){
-  var file=ev.target.files[0];
-  if(!file)return;
-  var reader=new FileReader();
-  reader.onload=function(e){
-    try{
-      var data=JSON.parse(e.target.result);
-      if(!Array.isArray(data)){toast("Invalid file");return;}
-      var existing=getOrders();
-      var added=0;
-      data.forEach(function(o){
-        if(o.jobId&&o.appointmentDate){
-          var idx=findIdx(o.jobId,o.serviceNumber,o.appointmentDate);
-          if(idx<0){existing.push(o);added++;}
-        }
-      });
-      saveOrders(existing);
-      toast("Restored "+added+" new orders");
-      renderHome();renderAll();renderHistory();
-    }catch(err){toast("Restore failed: invalid file");}
-  };
-  reader.readAsText(file);
-  ev.target.value="";
-}
-
-renderHome();
+  if(name==="home")renderHome();
   else if(name==="all")renderAll();
   else if(name==="history")renderHistory();
 }
@@ -200,59 +147,7 @@ function renderHome(){
   var h="";orders.forEach(function(o){h+=card(o);});document.getElementById("homeList").innerHTML=h;
 }
 
-function filterByLetter(l){window._selLetter=l||null;function doBSNSearch(){
-  var query=document.getElementById("bsnSearch").value.trim().toLowerCase();
-  if(!query){toast("Enter Service # first");return;}
-  var all=getOrders();
-  var matched=all.filter(function(o){return o.serviceNumber&&o.serviceNumber.toLowerCase().replace(/\s+/g,"")===query.replace(/\s+/g,"");});
-  if(matched.length===0){
-    matched=all.filter(function(o){return o.serviceNumber&&o.serviceNumber.toLowerCase().includes(query);});
-  }
-  var resultsDiv=document.getElementById("bsnResults");
-  var emptyDiv=document.getElementById("bsnEmpty");
-  if(matched.length===0){
-    resultsDiv.style.display="none";
-    emptyDiv.style.display="block";
-    return;
-  }
-  emptyDiv.style.display="none";
-  resultsDiv.style.display="block";
-  var totalFare=matched.reduce(function(s,o){return s+parseFloat(o.fare||0);},0);
-  var done=matched.filter(function(o){return o.orderStatus==="done";}).length;
-  var paused=matched.filter(function(o){return o.orderStatus==="paused";}).length;
-  document.getElementById("bsnSummary").innerHTML="<span class=\"s-p\">"+matched.length+" result"+(matched.length>1?"s":"")+"</span> <span class=\"s-d\">"+done+" done</span> "+(paused?"<span class=\"s-h\">"+paused+" paused</span> ":"")+(totalFare>0?"<span class=\"s-p\">Total: $"+totalFare.toFixed(1)+"</span>":"");
-  var h="";
-  matched.forEach(function(o){h+=cardFull(o);});
-  document.getElementById("bsnList").innerHTML=h;
-}
-
-function doImport2(ev){
-  var file=ev.target.files[0];
-  if(!file)return;
-  var reader=new FileReader();
-  reader.onload=function(e){
-    try{
-      var data=JSON.parse(e.target.result);
-      if(!Array.isArray(data)){toast("Invalid file");return;}
-      var existing=getOrders();
-      var added=0;
-      data.forEach(function(o){
-        if(o.jobId&&o.appointmentDate){
-          var idx=findIdx(o.jobId,o.serviceNumber,o.appointmentDate);
-          if(idx<0){existing.push(o);added++;}
-        }
-      });
-      saveOrders(existing);
-      toast("Restored "+added+" new orders");
-      renderHome();renderAll();renderHistory();
-    }catch(err){toast("Restore failed: invalid file");}
-  };
-  reader.readAsText(file);
-  ev.target.value="";
-}
-
-renderHome();}
-
+function filterByLetter(l){window._selLetter=l||null;renderHome();}
 
 function renderAll(){
   var dp=document.getElementById("allDatePicker");
@@ -335,7 +230,6 @@ function doSave(input){
 }
 function doMark(btn,status){
   var act=btn.parentElement;var jobId=act.dataset.j,sn=act.dataset.s,date=act.dataset.d;
-  // save any pending input first
   var fareInput=act.querySelector('input[type=number]');
   var noteInput=act.querySelector('input[type=text]');
   var orders=getOrders();var i=findIdx(jobId,sn,date);
@@ -344,76 +238,13 @@ function doMark(btn,status){
     orders[i].orderStatus=status;saveOrders(orders);toast(status==="done"?"Done!":status==="paused"?"Paused":"Restored");
   }
   var t=btn.closest(".tab-content").id;
-  if(t==="tab-home")function doBSNSearch(){
-  var query=document.getElementById("bsnSearch").value.trim().toLowerCase();
-  if(!query){toast("Enter Service # first");return;}
-  var all=getOrders();
-  var matched=all.filter(function(o){return o.serviceNumber&&o.serviceNumber.toLowerCase().replace(/\s+/g,"")===query.replace(/\s+/g,"");});
-  if(matched.length===0){
-    matched=all.filter(function(o){return o.serviceNumber&&o.serviceNumber.toLowerCase().includes(query);});
-  }
-  var resultsDiv=document.getElementById("bsnResults");
-  var emptyDiv=document.getElementById("bsnEmpty");
-  if(matched.length===0){
-    resultsDiv.style.display="none";
-    emptyDiv.style.display="block";
-    return;
-  }
-  emptyDiv.style.display="none";
-  resultsDiv.style.display="block";
-  var totalFare=matched.reduce(function(s,o){return s+parseFloat(o.fare||0);},0);
-  var done=matched.filter(function(o){return o.orderStatus==="done";}).length;
-  var paused=matched.filter(function(o){return o.orderStatus==="paused";}).length;
-  document.getElementById("bsnSummary").innerHTML="<span class=\"s-p\">"+matched.length+" result"+(matched.length>1?"s":"")+"</span> <span class=\"s-d\">"+done+" done</span> "+(paused?"<span class=\"s-h\">"+paused+" paused</span> ":"")+(totalFare>0?"<span class=\"s-p\">Total: $"+totalFare.toFixed(1)+"</span>":"");
-  var h="";
-  matched.forEach(function(o){h+=cardFull(o);});
-  document.getElementById("bsnList").innerHTML=h;
+  if(t==="tab-home")renderHome();else if(t==="tab-all")renderAll();else renderHistory();
 }
 
-function doImport2(ev){
-  var file=ev.target.files[0];
-  if(!file)return;
-  var reader=new FileReader();
-  reader.onload=function(e){
-    try{
-      var data=JSON.parse(e.target.result);
-      if(!Array.isArray(data)){toast("Invalid file");return;}
-      var existing=getOrders();
-      var added=0;
-      data.forEach(function(o){
-        if(o.jobId&&o.appointmentDate){
-          var idx=findIdx(o.jobId,o.serviceNumber,o.appointmentDate);
-          if(idx<0){existing.push(o);added++;}
-        }
-      });
-      saveOrders(existing);
-      toast("Restored "+added+" new orders");
-      renderHome();renderAll();renderHistory();
-    }catch(err){toast("Restore failed: invalid file");}
-  };
-  reader.readAsText(file);
-  ev.target.value="";
-}
-
-renderHome();else if(t==="tab-all")renderAll();else renderHistory();
-}
-
-async function doExport(){
+function doExport(){
   var orders=getOrders();
   if(orders.length===0){toast("No data to export");return;}
-  var jsonStr=JSON.stringify(orders,null,2);
-  if(window.showSaveFilePicker){
-    try{
-      var opts={suggestedName:"wfm_backup_"+todayStr().replace(/\//g,"-")+".json",types:[{description:"JSON Files",accept:{"application/json":[".json"]}}]};
-      var handle=await window.showSaveFilePicker(opts);
-      var writable=await handle.createWritable();
-      await writable.write(jsonStr);
-      await writable.close();
-      toast("Saved to "+handle.name);
-      return;
-    }catch(e){if(e.name!=="AbortError"){console.error(e);}}
-  }
-  var blob=new Blob([jsonStr],{type:"application/json"});
+  var blob=new Blob([JSON.stringify(orders,null,2)],{type:"application/json"});
   var a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
   a.download="wfm_backup_"+todayStr().replace(/\//g,"-")+".json";
@@ -437,8 +268,15 @@ function doImport(ev){
         }
       });
       saveOrders(existing);
-      toast("Imported "+added+" new orders ("+data.length+" total in file)");
-      function doBSNSearch(){
+      toast("Imported "+added+" new orders");
+      renderHome();renderAll();renderHistory();
+    }catch(err){toast("Import failed: invalid file");}
+  };
+  reader.readAsText(file);
+  ev.target.value="";
+}
+
+function doBSNSearch(){
   var query=document.getElementById("bsnSearch").value.trim().toLowerCase();
   if(!query){toast("Enter Service # first");return;}
   var all=getOrders();
@@ -489,14 +327,6 @@ function doImport2(ev){
   ev.target.value="";
 }
 
-renderHome();renderAll();renderHistory();
-    }catch(err){toast("Import failed: invalid file");}
-  };
-  reader.readAsText(file);
-  ev.target.value="";
-}
-
-/* EXTRACT */
 var KL={"job id":"job id","jobid":"job id","exchange / grid":"exchange / grid","grid":"grid","bsn":"bsn","bsn.":"bsn","service number":"service number","service #":"service number","appointment date":"appointment date","appointment time":"appointment time","status":"status","pid desc":"pid desc","pid":"pid","a end address":"a end address","address":"a end address","address showmap":"a end address","contact name":"contact name","contact no.":"contact no.","contact no":"contact no.","contact mobile":"contact mobile"};
 
 function extractEnglish(text){
@@ -550,58 +380,7 @@ function doDelete(btn){
   var i=findIdx(jobId,sn,date);
   if(i>=0){orders.splice(i,1);saveOrders(orders);toast("Deleted");}
   var t=document.querySelector(".tab-content.active").id;
-  if(t==="tab-home")function doBSNSearch(){
-  var query=document.getElementById("bsnSearch").value.trim().toLowerCase();
-  if(!query){toast("Enter Service # first");return;}
-  var all=getOrders();
-  var matched=all.filter(function(o){return o.serviceNumber&&o.serviceNumber.toLowerCase().replace(/\s+/g,"")===query.replace(/\s+/g,"");});
-  if(matched.length===0){
-    matched=all.filter(function(o){return o.serviceNumber&&o.serviceNumber.toLowerCase().includes(query);});
-  }
-  var resultsDiv=document.getElementById("bsnResults");
-  var emptyDiv=document.getElementById("bsnEmpty");
-  if(matched.length===0){
-    resultsDiv.style.display="none";
-    emptyDiv.style.display="block";
-    return;
-  }
-  emptyDiv.style.display="none";
-  resultsDiv.style.display="block";
-  var totalFare=matched.reduce(function(s,o){return s+parseFloat(o.fare||0);},0);
-  var done=matched.filter(function(o){return o.orderStatus==="done";}).length;
-  var paused=matched.filter(function(o){return o.orderStatus==="paused";}).length;
-  document.getElementById("bsnSummary").innerHTML="<span class=\"s-p\">"+matched.length+" result"+(matched.length>1?"s":"")+"</span> <span class=\"s-d\">"+done+" done</span> "+(paused?"<span class=\"s-h\">"+paused+" paused</span> ":"")+(totalFare>0?"<span class=\"s-p\">Total: $"+totalFare.toFixed(1)+"</span>":"");
-  var h="";
-  matched.forEach(function(o){h+=cardFull(o);});
-  document.getElementById("bsnList").innerHTML=h;
-}
-
-function doImport2(ev){
-  var file=ev.target.files[0];
-  if(!file)return;
-  var reader=new FileReader();
-  reader.onload=function(e){
-    try{
-      var data=JSON.parse(e.target.result);
-      if(!Array.isArray(data)){toast("Invalid file");return;}
-      var existing=getOrders();
-      var added=0;
-      data.forEach(function(o){
-        if(o.jobId&&o.appointmentDate){
-          var idx=findIdx(o.jobId,o.serviceNumber,o.appointmentDate);
-          if(idx<0){existing.push(o);added++;}
-        }
-      });
-      saveOrders(existing);
-      toast("Restored "+added+" new orders");
-      renderHome();renderAll();renderHistory();
-    }catch(err){toast("Restore failed: invalid file");}
-  };
-  reader.readAsText(file);
-  ev.target.value="";
-}
-
-renderHome();else if(t==="tab-all")renderAll();else renderHistory();
+  if(t==="tab-home")renderHome();else if(t==="tab-all")renderAll();else renderHistory();
 }
 
 function doEdit(btn){
@@ -641,122 +420,14 @@ function doSaveEdit(){
   orders[i].phone=document.getElementById("ef_phone").value;
   orders[i].pidDesc=document.getElementById("ef_pid").value;
   saveOrders(orders);document.getElementById("editBox").style.display="none";toast("Updated!");
-  function doBSNSearch(){
-  var query=document.getElementById("bsnSearch").value.trim().toLowerCase();
-  if(!query){toast("Enter Service # first");return;}
-  var all=getOrders();
-  var matched=all.filter(function(o){return o.serviceNumber&&o.serviceNumber.toLowerCase().replace(/\s+/g,"")===query.replace(/\s+/g,"");});
-  if(matched.length===0){
-    matched=all.filter(function(o){return o.serviceNumber&&o.serviceNumber.toLowerCase().includes(query);});
-  }
-  var resultsDiv=document.getElementById("bsnResults");
-  var emptyDiv=document.getElementById("bsnEmpty");
-  if(matched.length===0){
-    resultsDiv.style.display="none";
-    emptyDiv.style.display="block";
-    return;
-  }
-  emptyDiv.style.display="none";
-  resultsDiv.style.display="block";
-  var totalFare=matched.reduce(function(s,o){return s+parseFloat(o.fare||0);},0);
-  var done=matched.filter(function(o){return o.orderStatus==="done";}).length;
-  var paused=matched.filter(function(o){return o.orderStatus==="paused";}).length;
-  document.getElementById("bsnSummary").innerHTML="<span class=\"s-p\">"+matched.length+" result"+(matched.length>1?"s":"")+"</span> <span class=\"s-d\">"+done+" done</span> "+(paused?"<span class=\"s-h\">"+paused+" paused</span> ":"")+(totalFare>0?"<span class=\"s-p\">Total: $"+totalFare.toFixed(1)+"</span>":"");
-  var h="";
-  matched.forEach(function(o){h+=cardFull(o);});
-  document.getElementById("bsnList").innerHTML=h;
-}
-
-function doImport2(ev){
-  var file=ev.target.files[0];
-  if(!file)return;
-  var reader=new FileReader();
-  reader.onload=function(e){
-    try{
-      var data=JSON.parse(e.target.result);
-      if(!Array.isArray(data)){toast("Invalid file");return;}
-      var existing=getOrders();
-      var added=0;
-      data.forEach(function(o){
-        if(o.jobId&&o.appointmentDate){
-          var idx=findIdx(o.jobId,o.serviceNumber,o.appointmentDate);
-          if(idx<0){existing.push(o);added++;}
-        }
-      });
-      saveOrders(existing);
-      toast("Restored "+added+" new orders");
-      renderHome();renderAll();renderHistory();
-    }catch(err){toast("Restore failed: invalid file");}
-  };
-  reader.readAsText(file);
-  ev.target.value="";
-}
-
-renderHome();renderAll();renderHistory();
+  renderHome();renderAll();renderHistory();
 }
 
 function cancelEdit(){document.getElementById("editBox").style.display="none";}
 
-
-function doBSNSearch(){
-  var query=document.getElementById("bsnSearch").value.trim().toLowerCase();
-  if(!query){toast("Enter Service # first");return;}
-  var all=getOrders();
-  var matched=all.filter(function(o){return o.serviceNumber&&o.serviceNumber.toLowerCase().replace(/\s+/g,"")===query.replace(/\s+/g,"");});
-  if(matched.length===0){
-    matched=all.filter(function(o){return o.serviceNumber&&o.serviceNumber.toLowerCase().includes(query);});
-  }
-  var resultsDiv=document.getElementById("bsnResults");
-  var emptyDiv=document.getElementById("bsnEmpty");
-  if(matched.length===0){
-    resultsDiv.style.display="none";
-    emptyDiv.style.display="block";
-    return;
-  }
-  emptyDiv.style.display="none";
-  resultsDiv.style.display="block";
-  var totalFare=matched.reduce(function(s,o){return s+parseFloat(o.fare||0);},0);
-  var done=matched.filter(function(o){return o.orderStatus==="done";}).length;
-  var paused=matched.filter(function(o){return o.orderStatus==="paused";}).length;
-  document.getElementById("bsnSummary").innerHTML="<span class=\"s-p\">"+matched.length+" result"+(matched.length>1?"s":"")+"</span> <span class=\"s-d\">"+done+" done</span> "+(paused?"<span class=\"s-h\">"+paused+" paused</span> ":"")+(totalFare>0?"<span class=\"s-p\">Total: $"+totalFare.toFixed(1)+"</span>":"");
-  var h="";
-  matched.forEach(function(o){h+=cardFull(o);});
-  document.getElementById("bsnList").innerHTML=h;
-}
-
-function doImport2(ev){
-  var file=ev.target.files[0];
-  if(!file)return;
-  var reader=new FileReader();
-  reader.onload=function(e){
-    try{
-      var data=JSON.parse(e.target.result);
-      if(!Array.isArray(data)){toast("Invalid file");return;}
-      var existing=getOrders();
-      var added=0;
-      data.forEach(function(o){
-        if(o.jobId&&o.appointmentDate){
-          var idx=findIdx(o.jobId,o.serviceNumber,o.appointmentDate);
-          if(idx<0){existing.push(o);added++;}
-        }
-      });
-      saveOrders(existing);
-      toast("Restored "+added+" new orders");
-      renderHome();renderAll();renderHistory();
-    }catch(err){toast("Restore failed: invalid file");}
-  };
-  reader.readAsText(file);
-  ev.target.value="";
-}
-
 renderHome();
 
-/* PWA Service Worker */
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(function(e){});}
-
 </script>
 </body>
 </html>
-
-
-
