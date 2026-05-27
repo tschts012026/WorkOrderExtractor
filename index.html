@@ -96,7 +96,7 @@ textarea{width:100%;height:140px;border:2px solid #ddd;border-radius:12px;paddin
   </div>
 </div>
 <div style="margin-bottom:10px">
-  <div style="font-size:13px;font-weight:700;color:#555;margin-bottom:6px">Search by Service #</div>
+  <div style="font-size:13px;font-weight:700;color:#555;margin-bottom:6px">Search by BSN</div>
   <div style="display:flex;gap:6px">
     <input type="text" id="bsnSearch" placeholder="Enter Service #..." style="flex:1;padding:8px;border:2px solid #ddd;border-radius:10px;font-size:13px" onkeydown="if(event.key==='Enter')doBSNSearch()">
     <button onclick="doBSNSearch()" style="padding:8px 16px;background:#667eea;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">Search</button>
@@ -280,9 +280,9 @@ function doBSNSearch(){
   var query=document.getElementById("bsnSearch").value.trim().toLowerCase();
   if(!query){toast("Enter Service # first");return;}
   var all=getOrders();
-  var matched=all.filter(function(o){return o.serviceNumber&&o.serviceNumber.toLowerCase().replace(/\s+/g,"")===query.replace(/\s+/g,"");});
+  var matched=all.filter(function(o){return o.bsn&&o.bsn.toLowerCase().replace(/\s+/g,"")===query.replace(/\s+/g,"");});
   if(matched.length===0){
-    matched=all.filter(function(o){return o.serviceNumber&&o.serviceNumber.toLowerCase().includes(query);});
+    matched=all.filter(function(o){return o.bsn&&o.bsn.toLowerCase().includes(query);});
   }
   var resultsDiv=document.getElementById("bsnResults");
   var emptyDiv=document.getElementById("bsnEmpty");
