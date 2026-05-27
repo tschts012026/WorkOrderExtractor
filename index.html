@@ -58,6 +58,7 @@ textarea{width:100%;height:140px;border:2px solid #ddd;border-radius:12px;paddin
 <button class="tab-btn" onclick="switchTab('extract')">Extract</button>
 <button class="tab-btn" onclick="switchTab('all')">All</button>
 <button class="tab-btn" onclick="switchTab('history')">History</button>
+<button class="tab-btn" onclick="switchTab('advance')">Advance</button>
 </div>
 <div id="tab-home" class="tab-content active">
 <div class="letter-filter" id="letterFilter"></div>
@@ -87,6 +88,29 @@ textarea{width:100%;height:140px;border:2px solid #ddd;border-radius:12px;paddin
 </div>
 </div>
 </div>
+<div id="tab-advance" class="tab-content">
+<div style="margin-bottom:12px">
+  <div style="font-size:13px;font-weight:700;color:#667eea;margin-bottom:6px">Backup / Search</div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+    <button class="bext" onclick="doExport()" style="padding:7px 14px;font-size:12px">Save Backup</button>
+    <button class="bclr" onclick="document.getElementById('importFile2').click()" style="padding:7px 14px;font-size:12px">Restore Backup</button>
+    <input type="file" id="importFile2" accept=".json" style="display:none" onchange="doImport2(event)">
+  </div>
+</div>
+<div style="margin-bottom:10px">
+  <div style="font-size:13px;font-weight:700;color:#555;margin-bottom:6px">Search by Service # (BSN)</div>
+  <div style="display:flex;gap:6px">
+    <input type="text" id="bsnSearch" placeholder="Enter Service #..." style="flex:1;padding:8px;border:2px solid #ddd;border-radius:10px;font-size:13px" onkeydown="if(event.key==='Enter')doBSNSearch()">
+    <button onclick="doBSNSearch()" style="padding:8px 16px;background:#667eea;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">Search</button>
+  </div>
+</div>
+<div id="bsnResults" style="display:none">
+  <div id="bsnSummary" style="margin-bottom:8px"></div>
+  <div id="bsnList"></div>
+</div>
+<div id="bsnEmpty" style="display:none;text-align:center;padding:30px;color:#ccc;font-size:13px">No matching orders found</div>
+</div>
+
 <div id="editBox" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1000;overflow:auto"></div>
 <div class="toast" id="toast"></div>
 <script>
@@ -101,7 +125,7 @@ function switchTab(name){
   document.querySelectorAll(".tab-btn").forEach(function(e){e.classList.remove("active");});
   document.getElementById("tab-"+name).classList.add("active");
   var btns=document.querySelectorAll(".tab-btn");
-  var map={home:0,extract:1,all:2,history:3};
+  var map={home:0,extract:1,all:2,history:3,advance:4};
   btns[map[name]].classList.add("active");
   if(name==="home")renderHome();
   else if(name==="all")renderAll();
